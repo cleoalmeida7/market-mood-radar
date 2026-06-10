@@ -129,6 +129,7 @@ FINNHUB_API_KEY=your_key_here
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
 RESEND_API_KEY=your_resend_key
+CRON_SECRET=your_cron_secret
 ```
 
 - Finnhub API key: [finnhub.io](https://finnhub.io) (free tier)
@@ -147,29 +148,44 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Project Structure
 
+> As actually built. See **[HANDOVER.md](HANDOVER.md)** for the full architecture,
+> scoring/damping internals, and per-route detail.
+
 ```
 src/
   lib/
+    fetchers/
+      yahoo.ts          # OHLCV price history (no API key)
+      finnhub.ts        # news + economic calendar
     radar/
-      engine.ts         # Signal fusion engine — core scoring logic
-      hormuz.ts         # Live Hormuz keyword parser
-      history.ts        # Score snapshot storage (Supabase)
-      correlation.ts    # Cross-commodity correlation logic
+      engine.ts         # PURE signal-fusion engine — core scoring/damping
+      indicators.ts     # RSI / MACD / 20-50 MA / Bollinger (values + series)
+      hormuz.ts         # live Hormuz keyword signal (CL/NG only)
+      correlation.ts    # cross-commodity 7-day correlation
+      commodities.ts    # name + keyword metadata
+      load.ts           # tolerant loader: gathers engine inputs from fetchers
+      signals/          # technical / calendar / news / marketwide scorers
+      __tests__/        # Jest tests for engine.ts
+    supabase.ts         # Supabase client factory
+    alerts.ts           # threshold evaluation + Resend email
   app/
-    page.tsx            # Dashboard commodity grid
-    radar/
-      page.tsx          # Radar page
-    alerts/
-      page.tsx          # Alerts system
-    commodity/
-      [ticker]/
-        page.tsx        # Per-commodity chart + history
-  api/
-    radar/              # GET /api/radar — fused scores, 30s cache
-    commodity/          # GET /api/commodity/[ticker] — price + indicators
-    news/               # GET /api/news — Finnhub headlines by commodity
-    calendar/           # GET /api/calendar — upcoming economic events
-    alerts/             # POST /api/alerts — save threshold, trigger notification
+    page.tsx            # Dashboard (/) — commodity grid
+    radar/page.tsx      # Radar (/radar) — gauge, movers, explainability, correlation
+    commodity/[ticker]/ # per-commodity charts + indicators + score history
+    alerts/page.tsx     # Alerts manager
+    api/
+      radar/            # GET — fused scores + mood + sparklines (30s cache)
+      commodity/[ticker]# GET — OHLCV + indicators (+ series)
+      news/             # GET — Finnhub headlines grouped by commodity
+      calendar/         # GET — upcoming economic events
+      alerts/           # GET / POST / DELETE — threshold alerts (Supabase)
+      history/[ticker]/ # GET — score-snapshot history + delta
+      cron/snapshot/    # GET/POST — hourly snapshot writer (CRON_SECRET)
+  components/           # UI (shadcn primitives in components/ui)
+  hooks/usePolling.ts   # 30s polling fetch hook
+  types/api.ts          # client-facing API response types
+scripts/                # tsx smoke tests + schema.sql + backfill
+vercel.json             # hourly cron schedule
 ```
 
 ---
@@ -182,6 +198,7 @@ src/
 | `SUPABASE_URL` | Yes | Supabase project URL for score history |
 | `SUPABASE_ANON_KEY` | Yes | Supabase anon key |
 | `RESEND_API_KEY` | No | Resend API key for email alerts |
+| `CRON_SECRET` | For cron | Authorises the hourly `/api/cron/snapshot` route |
 
 ---
 
@@ -194,6 +211,32 @@ npm test
 Jest tests cover `engine.ts` scoring logic, damping behaviour, and neutral-exclusion rules.
 
 ---
+
+## Deploy to Vercel
+
+1. Push the repo to GitHub and **Import** it in Vercel (framework auto-detects as Next.js).
+2. Add every variable from the checklist below in **Settings → Environment Variables**
+   (don't forget `CRON_SECRET`).
+3. Deploy. [`vercel.json`](vercel.json) already declares the hourly snapshot cron
+   (`0 * * * *` → `/api/cron/snapshot`); Vercel automatically sends the
+   `CRON_SECRET` as a bearer token, so no extra wiring is needed.
+4. Before alerts/history work, run [`scripts/schema.sql`](scripts/schema.sql) in the
+   Supabase SQL editor and `npm run backfill` to seed price history.
+
+## Credentials checklist
+
+Everything is **credential-ready** — the app runs and degrades gracefully without
+keys, but these unlock the full feature set:
+
+| Key | Needed for | Where to get it | Done? |
+|-----|------------|-----------------|-------|
+| `FINNHUB_API_KEY` | News, Hormuz signal, calendar | [finnhub.io](https://finnhub.io) (free) | ☐ |
+| `SUPABASE_URL` + `SUPABASE_ANON_KEY` | Alerts + score-history charts | [supabase.com](https://supabase.com) (free) → then run `scripts/schema.sql` + `npm run backfill` | ☐ |
+| `RESEND_API_KEY` | Alert emails | [resend.com](https://resend.com) (free) | ☐ |
+| `CRON_SECRET` | Hourly snapshots | any random string | ☐ |
+
+> Without Finnhub the radar still scores on technicals + macro. Without Supabase the
+> alerts list and trend charts show friendly empty/“not configured” states.
 
 ## Notes for Developers
 
