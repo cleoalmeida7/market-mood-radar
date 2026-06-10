@@ -7,6 +7,7 @@ import { WhatsMoving } from "@/components/whats-moving";
 import { Explainability } from "@/components/explainability";
 import { NewsPanel } from "@/components/news-panel";
 import { CalendarPanel } from "@/components/calendar-panel";
+import { CorrelationMatrix } from "@/components/correlation-matrix";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorCard, UpdatedAgo } from "@/components/states";
@@ -67,6 +68,8 @@ export default function RadarPage() {
           )}
         </div>
       </div>
+
+      {data && <CorrelationMatrix spark={data.spark} />}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {data ? (
