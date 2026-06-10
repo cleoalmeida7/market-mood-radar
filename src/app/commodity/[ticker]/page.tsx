@@ -101,7 +101,11 @@ export default function CommodityPage() {
         </CardHeader>
         <CardContent>
           {detail.data ? (
-            <PriceChart series={detail.data.series} color={style.hex} />
+            <div className="overflow-x-auto">
+              <div className="min-w-[520px]">
+                <PriceChart series={detail.data.series} color={style.hex} />
+              </div>
+            </div>
           ) : (
             <Skeleton className="h-64 w-full" />
           )}
@@ -114,7 +118,15 @@ export default function CommodityPage() {
             <CardTitle className="text-base">RSI (14)</CardTitle>
           </CardHeader>
           <CardContent>
-            {detail.data ? <RsiChart series={detail.data.series} /> : <Skeleton className="h-32 w-full" />}
+            {detail.data ? (
+              <div className="overflow-x-auto">
+                <div className="min-w-[420px]">
+                  <RsiChart series={detail.data.series} />
+                </div>
+              </div>
+            ) : (
+              <Skeleton className="h-32 w-full" />
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -122,7 +134,15 @@ export default function CommodityPage() {
             <CardTitle className="text-base">MACD (12/26/9)</CardTitle>
           </CardHeader>
           <CardContent>
-            {detail.data ? <MacdChart series={detail.data.series} /> : <Skeleton className="h-36 w-full" />}
+            {detail.data ? (
+              <div className="overflow-x-auto">
+                <div className="min-w-[420px]">
+                  <MacdChart series={detail.data.series} />
+                </div>
+              </div>
+            ) : (
+              <Skeleton className="h-36 w-full" />
+            )}
           </CardContent>
         </Card>
       </div>

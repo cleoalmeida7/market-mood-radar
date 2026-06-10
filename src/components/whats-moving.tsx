@@ -36,7 +36,7 @@ export function WhatsMoving({ commodities }: { commodities: CommodityScore[] }) 
                 </div>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <ScoreValue score={c.score} confidence={c.confidence} size="sm" />
                   <Badge variant="outline" className={cn(style.text, style.border)}>
                     {style.emoji} {c.label}

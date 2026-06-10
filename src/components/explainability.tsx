@@ -21,8 +21,8 @@ export function Explainability({ commodities }: { commodities: CommodityScore[] 
           const style = styleForScore(c.score);
           return (
             <div key={c.ticker} className={cn("rounded-lg border p-3", style.border, style.bg)}>
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-mono font-semibold">{c.ticker}</span>
                   <span className="text-xs text-muted-foreground">
                     {COMMODITY_META[c.ticker]?.name}
