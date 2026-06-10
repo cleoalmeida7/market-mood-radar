@@ -103,6 +103,16 @@ export interface BollingerValue {
   stddev: number;
 }
 
+/** Standard deviation of bar-to-bar changes — a scale-free volatility proxy. */
+export function stdDevOfDiffs(values: number[]): number {
+  if (values.length < 2) return 0;
+  const diffs: number[] = [];
+  for (let i = 1; i < values.length; i++) diffs.push(values[i] - values[i - 1]);
+  const mean = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+  const variance = diffs.reduce((a, b) => a + (b - mean) ** 2, 0) / diffs.length;
+  return Math.sqrt(variance);
+}
+
 export function bollingerBands(
   values: number[],
   period = 20,
@@ -167,9 +177,11 @@ function rsiSignal(closes: number[]): IndicatorResult {
 function macdSignal(closes: number[]): IndicatorResult {
   const m = macd(closes);
   if (m == null) return insufficient("MACD", closes.length);
-  const lastClose = closes[closes.length - 1];
-  const rel = Math.abs(m.histogram) / (lastClose || 1); // normalise by price
-  const confidence = clamp(rel / 0.01, 0.2, 1); // ~1% of price → full confidence
+  // Scale-free confidence: histogram relative to recent daily volatility.
+  // (~1 std of a typical daily move → strong momentum → full confidence.)
+  const vol = stdDevOfDiffs(closes.slice(-(26 + 1)));
+  const rel = vol > 0 ? Math.abs(m.histogram) / vol : 0;
+  const confidence = clamp(rel, 0.2, 1);
   const details = {
     macd: round(m.macd, 4),
     signal: round(m.signal, 4),
