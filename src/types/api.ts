@@ -53,3 +53,23 @@ export interface AlertsResponse {
   alerts: Alert[];
   warning?: string;
 }
+
+export interface ScoreSnapshot {
+  score: number;
+  confidence: number;
+  label: string;
+  captured_at: string;
+}
+
+/** GET /api/history/[ticker] */
+export interface HistoryResponse {
+  ticker: string;
+  snapshots: ScoreSnapshot[];
+  delta: {
+    from: number;
+    to: number;
+    capturedFrom: string;
+    capturedTo: string;
+  } | null;
+  warning?: string;
+}
