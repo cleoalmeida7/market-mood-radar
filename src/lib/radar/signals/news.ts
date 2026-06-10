@@ -29,9 +29,17 @@ function countWords(text: string, words: string[]): number {
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** Whole-word match for commodity keywords (so "oil" doesn't hit "turmoil"). */
-function mentionsCommodity(text: string, keywords: string[]): boolean {
+export function mentionsCommodity(text: string, keywords: string[]): boolean {
   const rx = new RegExp(`\\b(${keywords.map(escapeRe).join("|")})\\b`, "i");
   return rx.test(text);
+}
+
+/** Which commodities a news item is about (word-boundary keyword match). */
+export function commoditiesForNews(item: NewsItem): CommodityTicker[] {
+  const text = `${item.headline} ${item.summary}`.toLowerCase();
+  return (Object.keys(COMMODITY_META) as CommodityTicker[]).filter((t) =>
+    mentionsCommodity(text, COMMODITY_META[t].keywords),
+  );
 }
 
 export function scoreNews(

@@ -1,14 +1,47 @@
 import { NextResponse } from "next/server";
+import {
+  fetchPriceHistory,
+  COMMODITY_TICKERS,
+  YAHOO_SYMBOLS,
+  TICKER_LABELS,
+  type CommodityTicker,
+} from "@/lib/fetchers/yahoo";
+import { computeIndicators } from "@/lib/radar/indicators";
 
-// GET /api/commodity/[ticker] — price history + technical indicators.
-// TODO(phase-3): wire to the Yahoo fetcher + indicator calc.
+// GET /api/commodity/[ticker] — OHLCV history + computed indicators.
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ ticker: string }> },
 ) {
   const { ticker } = await params;
-  return NextResponse.json(
-    { error: "Not implemented", route: `/api/commodity/${ticker}` },
-    { status: 501 },
-  );
+  const upper = ticker.toUpperCase();
+
+  if (!(COMMODITY_TICKERS as readonly string[]).includes(upper)) {
+    return NextResponse.json(
+      { error: `Unknown ticker: ${ticker}`, valid: COMMODITY_TICKERS },
+      { status: 400 },
+    );
+  }
+  const t = upper as CommodityTicker;
+
+  try {
+    const history = await fetchPriceHistory(t, { range: "6mo", interval: "1d" });
+    const indicators = computeIndicators(history.bars);
+    return NextResponse.json(
+      {
+        ticker: t,
+        label: TICKER_LABELS[t],
+        symbol: YAHOO_SYMBOLS[t],
+        currency: history.currency,
+        bars: history.bars,
+        indicators,
+      },
+      { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30" } },
+    );
+  } catch (err) {
+    return NextResponse.json(
+      { error: "Failed to fetch price history", detail: err instanceof Error ? err.message : String(err) },
+      { status: 502 },
+    );
+  }
 }
