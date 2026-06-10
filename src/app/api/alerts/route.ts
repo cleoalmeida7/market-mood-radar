@@ -67,3 +67,20 @@ export async function POST(req: Request) {
   }
   return NextResponse.json({ alert: data }, { status: 201 });
 }
+
+// DELETE /api/alerts?id=<uuid> — remove a saved alert.
+export async function DELETE(req: Request) {
+  const id = new URL(req.url).searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "Missing id query param" }, { status: 400 });
+  }
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ error: "Supabase not configured" }, { status: 503 });
+  }
+  const supabase = getSupabase();
+  const { error } = await supabase.from("alerts").delete().eq("id", id);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true });
+}

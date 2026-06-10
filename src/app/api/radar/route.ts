@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { computeRadar } from "@/lib/radar/engine";
 import { COMMODITY_TICKERS } from "@/lib/fetchers/yahoo";
 import { loadRadarInputs } from "@/lib/radar/load";
+import { checkAndFireAlerts } from "@/lib/alerts";
 
 // GET /api/radar — fused commodity scores + overall market mood.
 // Cached for 30s (Finnhub free tier = 60 calls/min; Yahoo rate limits).
@@ -26,6 +27,8 @@ const getRadar = unstable_cache(
 export async function GET() {
   try {
     const radar = await getRadar();
+    // Fire any triggered threshold alerts (throttled + no-ops without creds).
+    await checkAndFireAlerts(radar);
     return NextResponse.json(radar, {
       headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30" },
     });
