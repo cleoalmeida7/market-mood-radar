@@ -9,6 +9,7 @@ import { NewsPanel } from "@/components/news-panel";
 import { CalendarPanel } from "@/components/calendar-panel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorCard, UpdatedAgo } from "@/components/states";
 
 export default function RadarPage() {
   const radar = usePolling<RadarResponse>("/api/radar", 30_000);
@@ -17,6 +18,17 @@ export default function RadarPage() {
 
   const data = radar.data;
 
+  if (radar.error && !data) {
+    return (
+      <div className="space-y-6">
+        <header>
+          <h1 className="text-2xl font-semibold tracking-tight">Market Radar</h1>
+        </header>
+        <ErrorCard message={radar.error} onRetry={radar.refresh} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <header>
@@ -24,13 +36,12 @@ export default function RadarPage() {
         <p className="text-sm text-muted-foreground">
           Overall mood, movers, and the reasoning behind every score · auto-refreshes every 30s
         </p>
+        <UpdatedAgo
+          updatedAt={radar.updatedAt}
+          stale={Boolean(radar.error && data)}
+          className="mt-1"
+        />
       </header>
-
-      {radar.error && !data && (
-        <div className="rounded-md border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
-          Failed to load radar: {radar.error}
-        </div>
-      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">

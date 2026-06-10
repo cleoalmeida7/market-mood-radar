@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState } from "@/components/states";
 
 export default function AlertsPage() {
   const { data, refresh } = usePolling<AlertsResponse>("/api/alerts", 60_000);
@@ -160,7 +161,10 @@ export default function AlertsPage() {
               </p>
             )}
             {(data?.alerts?.length ?? 0) === 0 && !data?.warning && (
-              <p className="text-sm text-muted-foreground">No alerts yet.</p>
+              <EmptyState
+                title="No alerts yet"
+                message="Create one on the left to get an email when a commodity score crosses your threshold."
+              />
             )}
             {data?.alerts?.map((a) => (
               <div

@@ -17,6 +17,7 @@ import { ConfidenceBar } from "@/components/confidence-bar";
 import { IndicatorList } from "@/components/indicator-list";
 import { PriceChart, RsiChart, MacdChart } from "@/components/indicator-charts";
 import { ScoreHistoryChart } from "@/components/score-history-chart";
+import { ErrorCard } from "@/components/states";
 import { styleForScore, arrowForScore } from "@/lib/ui/labels";
 import { COMMODITY_META } from "@/lib/radar/commodities";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,14 @@ export default function CommodityPage() {
           ← Dashboard
         </Link>
       </div>
+
+      {detail.error && !detail.data && (
+        <ErrorCard
+          title={`Couldn’t load ${ticker} data`}
+          message={detail.error}
+          onRetry={detail.refresh}
+        />
+      )}
 
       {/* Header: current score + reasons + delta */}
       <Card className={cn("border", style.border, style.bg)}>
