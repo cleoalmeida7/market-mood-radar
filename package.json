@@ -9,6 +9,9 @@
     "lint": "eslint",
     "test:yahoo": "node --env-file=.env.local --import tsx scripts/test-yahoo.ts",
     "test:finnhub": "node --env-file=.env.local --import tsx scripts/test-finnhub.ts",
+    "test:hormuz": "node --import tsx scripts/test-hormuz.ts",
+    "test:indicators": "node --import tsx scripts/test-indicators.ts",
+    "test:engine": "node --import tsx scripts/test-engine.ts",
     "backfill": "node --env-file=.env.local --import tsx scripts/backfill.ts"
   },
   "dependencies": {
