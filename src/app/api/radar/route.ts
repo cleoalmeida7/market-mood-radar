@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { computeRadar } from "@/lib/radar/engine";
+import { COMMODITY_TICKERS } from "@/lib/fetchers/yahoo";
 import { loadRadarInputs } from "@/lib/radar/load";
 
 // GET /api/radar — fused commodity scores + overall market mood.
@@ -8,9 +9,17 @@ import { loadRadarInputs } from "@/lib/radar/load";
 const getRadar = unstable_cache(
   async () => {
     const inputs = await loadRadarInputs();
-    return computeRadar(inputs);
+    const radar = computeRadar(inputs);
+    // 7-day close sparklines, derived from prices already fetched (no extra calls).
+    const spark = Object.fromEntries(
+      COMMODITY_TICKERS.map((t) => [
+        t,
+        (inputs.prices[t]?.bars ?? []).slice(-7).map((b) => b.close),
+      ]),
+    );
+    return { ...radar, spark };
   },
-  ["radar-v1"],
+  ["radar-v2"],
   { revalidate: 30, tags: ["radar"] },
 );
 

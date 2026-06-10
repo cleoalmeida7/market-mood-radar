@@ -6,7 +6,7 @@ import {
   TICKER_LABELS,
   type CommodityTicker,
 } from "@/lib/fetchers/yahoo";
-import { computeIndicators } from "@/lib/radar/indicators";
+import { computeIndicators, computeIndicatorSeries } from "@/lib/radar/indicators";
 
 // GET /api/commodity/[ticker] — OHLCV history + computed indicators.
 export async function GET(
@@ -27,6 +27,7 @@ export async function GET(
   try {
     const history = await fetchPriceHistory(t, { range: "6mo", interval: "1d" });
     const indicators = computeIndicators(history.bars);
+    const series = computeIndicatorSeries(history.bars);
     return NextResponse.json(
       {
         ticker: t,
@@ -35,6 +36,7 @@ export async function GET(
         currency: history.currency,
         bars: history.bars,
         indicators,
+        series,
       },
       { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30" } },
     );

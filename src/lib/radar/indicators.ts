@@ -308,3 +308,77 @@ export function computeIndicators(bars: OHLCV[]): IndicatorSet {
     bollinger: bollingerSignal(closes),
   };
 }
+
+// ---- Time series (for charts) ---------------------------------------------
+
+export interface IndicatorSeriesPoint {
+  date: string;
+  close: number;
+  rsi: number | null;
+  macd: number | null;
+  signal: number | null;
+  histogram: number | null;
+  bbUpper: number | null;
+  bbMiddle: number | null;
+  bbLower: number | null;
+}
+
+const r2 = (n: number | null, d = 2): number | null =>
+  n == null ? null : Number(n.toFixed(d));
+
+/**
+ * Per-bar indicator series for charting (RSI, MACD line/signal/histogram,
+ * Bollinger bands), aligned to `bars` with nulls during warm-up.
+ */
+export function computeIndicatorSeries(bars: OHLCV[]): IndicatorSeriesPoint[] {
+  const closes = bars.map((b) => b.close);
+  const n = closes.length;
+
+  // MACD computed once over the full series, then index-aligned.
+  const fast = emaSeries(closes, 12); // close index 11 + j
+  const slow = emaSeries(closes, 26); // close index 25 + k
+  const offset = fast.length - slow.length; // 14
+  const macdLine = slow.map((s, i) => (fast[i + offset] ?? s) - s); // close index 25 + i
+  const signalLine = emaSeries(macdLine, 9); // close index 33 + m
+  const MACD_START = 25;
+  const SIGNAL_START = 33;
+
+  const out: IndicatorSeriesPoint[] = [];
+  for (let i = 0; i < n; i++) {
+    const rsiVal = i >= 14 ? rsi(closes.slice(0, i + 1), 14) : null;
+
+    let macdV: number | null = null;
+    let sigV: number | null = null;
+    let histV: number | null = null;
+    if (i >= MACD_START) macdV = macdLine[i - MACD_START];
+    if (i >= SIGNAL_START) {
+      sigV = signalLine[i - SIGNAL_START];
+      histV = (macdV ?? 0) - (sigV ?? 0);
+    }
+
+    let up: number | null = null;
+    let mid: number | null = null;
+    let low: number | null = null;
+    if (i >= 19) {
+      const b = bollingerBands(closes.slice(0, i + 1), 20, 2);
+      if (b) {
+        up = b.upper;
+        mid = b.middle;
+        low = b.lower;
+      }
+    }
+
+    out.push({
+      date: bars[i].date,
+      close: closes[i],
+      rsi: r2(rsiVal, 1),
+      macd: r2(macdV, 4),
+      signal: r2(sigV, 4),
+      histogram: r2(histV, 4),
+      bbUpper: r2(up),
+      bbMiddle: r2(mid),
+      bbLower: r2(low),
+    });
+  }
+  return out;
+}
