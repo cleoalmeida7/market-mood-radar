@@ -14,7 +14,8 @@
     "test:indicators": "node --import tsx scripts/test-indicators.ts",
     "test:signals": "node --import tsx scripts/test-signals.ts",
     "test:engine": "node --import tsx scripts/test-engine.ts",
-    "backfill": "node --env-file=.env.local --import tsx scripts/backfill.ts"
+    "backfill": "node --env-file=.env.local --import tsx scripts/backfill.ts",
+    "seed:snapshots": "node --env-file=.env.local --import tsx scripts/seed-snapshots.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
