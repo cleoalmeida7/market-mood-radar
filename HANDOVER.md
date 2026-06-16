@@ -209,6 +209,33 @@ tests `npm run test:yahoo|test:hormuz|test:indicators|test:signals|test:engine`.
 
 ---
 
+## 8a. Economic calendar — free source deliberately deferred
+
+Finnhub's `/calendar/economic` endpoint is **premium**; the free tier returns 403.
+We evaluated replacing it with a free source and **chose to defer it** rather than
+ship a weak integration:
+
+- **FRED** (`api.stlouisfed.org`, free, no card) is an economic *data* API (released
+  series like CPI, unemployment). It exposes release *dates*, but **no
+  forecasts/estimates** — and the calendar signal scores `actual` vs `estimate`
+  surprises, so FRED maps onto it poorly. It would run, but produce a low-quality
+  signal.
+- **Scraping** a public economic calendar is brittle and breaks without notice.
+
+**Decision & impact:** left unimplemented. The calendar is only 1 of the 5 signals,
+and the engine **excludes it as neutral** when it has no data, so the other four
+sources (technical, news, market-wide, Hormuz) carry the scores. The Calendar panel
+shows a graceful "not available on this plan" note. No functional loss beyond a
+missing 5th input.
+
+**If you want the 5th signal later:** add a free source returning the existing
+`EconomicEvent[]` shape, point `loadCalendar()` in `src/lib/radar/load.ts` at it,
+and `src/lib/radar/signals/calendar.ts` picks it up unchanged — no engine changes
+needed. (Best free option found: FRED release-dates + latest values, accepting that
+`estimate` is missing or using the prior value as a proxy.)
+
+---
+
 ## 9. Still pending (needs real credentials)
 
 Everything below is **built and credential-ready**, just not yet exercised live
