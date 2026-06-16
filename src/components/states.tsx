@@ -68,12 +68,12 @@ export function UpdatedAgo({
 }) {
   const [, force] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => force((n) => n + 1), 5_000);
+    const id = setInterval(() => force((n) => n + 1), 1_000);
     return () => clearInterval(id);
   }, []);
 
   if (!updatedAt) return null;
-  const secs = Math.max(0, Math.round((Date.now() - updatedAt) / 1000));
+  const secs = Math.max(0, Math.floor((Date.now() - updatedAt) / 1000));
   const label = secs < 60 ? `${secs}s ago` : `${Math.round(secs / 60)}m ago`;
 
   return (
