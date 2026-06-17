@@ -97,7 +97,9 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **Phase 2, Step 3 — DONE.** Next: **Phase 2, Step 4** (topic de-duplication).
+▶ **PHASE 2 COMPLETE** (Step 3 sentiment+Hormuz decay ✅, Step 4 topic dedup ✅).
+Next: **Phase 3, Step 5** (cache 12mo Yahoo history in Supabase) — **awaiting user
+go-ahead.** NOT yet deployed — Phase 2 engine changes need `vercel --prod` to go live.
 Rule: commit after each step, update this file, then WAIT for user confirmation
 before the next phase.
 
@@ -177,3 +179,12 @@ domain is verified.)_
   **5 suites / 68 passing**; clean build OK. NOTE: not yet deployed — needs
   `vercel --prod` to go live.
   → **Next: Phase 2 Step 4** (topic de-duplication for news + Hormuz).
+- **Phase 2 Step 4 — DONE** (`8b08bad` feat(radar): topic de-duplication). New
+  `dedup.ts` — clusters near-identical headlines (Jaccard ≥ 0.6 on significant
+  tokens), keeps the most-recent per cluster. Applied inside `scoreNews`,
+  `scoreMarketSentiment`, and `scoreHormuz` (the `/api/news` panel still shows ALL
+  raw headlines). Added `dedup.test.ts`; updated sentiment/engine tests to use
+  DISTINCT headlines (identical ones now collapse). `npm test` = **6 suites / 75
+  passing**; clean build OK.
+  → **PHASE 2 COMPLETE. Next: Phase 3 Step 5** — awaiting user go-ahead.
+  ⚠️ Phase 2 changes NOT yet deployed — run `vercel --prod` to push live.
