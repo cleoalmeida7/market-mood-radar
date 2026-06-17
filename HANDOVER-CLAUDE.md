@@ -107,10 +107,10 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 5 Step 10 DONE** (reasons → headlines drill-down). **Step 9 SKIPPED**
-(alerts upgrade — deferred: Resend sender domain not verified, so alert emails
-aren't sending). Next: **Phase 5, Step 11** (light/dark toggle) — **awaiting go-ahead.**
-⚠️ Steps 7, 8, 10 + the accuracy work are NOT yet deployed — run `vercel --prod`.
+▶ **PHASE 5 COMPLETE** (Step 11 light/dark toggle ✅; Steps 8 & 10 ✅; **Step 9
+SKIPPED** — alerts upgrade deferred, Resend sender domain not verified). Next:
+**Phase 6, Step 12** (rate-limit public API routes) — **awaiting go-ahead.**
+⚠️ Steps 7, 8, 10, 11 + the accuracy work are NOT yet deployed — run `vercel --prod`.
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3).
@@ -308,4 +308,17 @@ domain is verified.)_
   routes); news data confirmed flowing (e.g. XAU 3, CL 18 headlines). NOTE: the
   drill-down is client-rendered (not in SSR HTML), so verify in the live app.
   → **Next: Phase 5 Step 11** (light/dark toggle) — awaiting user go-ahead.
+  ⚠️ NOT yet deployed.
+- **Phase 5 Step 11 — DONE** (`feat(ui): light/dark toggle`). Wired `next-themes`
+  (already a dep): new `theme-provider.tsx` (attribute="class", defaultTheme="dark",
+  enableSystem=false, disableTransitionOnChange) wrapping the app in `layout.tsx`
+  (removed the hard-coded `dark` class on <html>, added `suppressHydrationWarning`).
+  New `theme-toggle.tsx` (sun/moon, lucide; `mounted` guard avoids hydration
+  mismatch) added to the right of `site-nav`. Both themes already existed in
+  `globals.css` (`:root` light + `.dark`), so semantic tokens switch cleanly; the
+  shadcn sonner Toaster already reads `useTheme`. Default stays dark, so existing
+  look is unchanged until toggled. Clean build (12 routes); home 200, toggle present.
+  KNOWN COSMETIC: Recharts components use fixed hex (gridlines/tooltip) tuned for
+  dark — readable but not re-themed in light mode (follow-up if wanted).
+  → **PHASE 5 COMPLETE. Next: Phase 6 Step 12** (rate limiting) — awaiting user go-ahead.
   ⚠️ NOT yet deployed.
