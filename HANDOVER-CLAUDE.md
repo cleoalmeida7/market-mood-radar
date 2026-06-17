@@ -107,9 +107,10 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 4 Step 6 COMPLETE** (backtesting + /backtest pages ✅). Next: **Phase 4,
-Step 7** (`/about` methodology page) — **awaiting user go-ahead.**
-⚠️ Step 6 NOT yet deployed — run `vercel --prod` to push the backtest live.
+▶ **PHASE 4 Step 6 COMPLETE & DEPLOYED** (backtesting + /backtest pages ✅,
+2026-06-17). Next: **Phase 4, Step 7** (`/about` methodology page) — **awaiting
+user go-ahead.** Verified live: `/api/backtest/XAU` returns 204 scored days,
+`/backtest` 200.
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3). Production = current
@@ -232,4 +233,4 @@ domain is verified.)_
   scored days, bull-band 7d avg +1.09% vs bear ~−0.05%, hit 53–58%; CL 7d hit 43%;
   bad ticker → 400; pages 200.
   → **Next: Phase 4 Step 7** (`/about` methodology page) — awaiting user go-ahead.
-  ⚠️ Step 6 NOT yet deployed — run `vercel --prod` to push live.
+  ✅ Deployed to production 2026-06-17 (verified live: /api/backtest/XAU + /backtest).
