@@ -97,9 +97,7 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 1 COMPLETE** (Step 1 tests ✅, Step 2 cron-job.org ✅ — hourly TEST RUN
-returned 200). Next: **Phase 2, Step 3** (broad sentiment signal + Hormuz decay) —
-**awaiting user go-ahead.**
+▶ **Phase 2, Step 3 — DONE.** Next: **Phase 2, Step 4** (topic de-duplication).
 Rule: commit after each step, update this file, then WAIT for user confirmation
 before the next phase.
 
@@ -169,3 +167,13 @@ domain is verified.)_
   (`0 * * * *`), GET `…/api/cron/snapshot`, `Authorization: Bearer <CRON_SECRET>`
   header. **TEST RUN = 200 OK** (snapshot written). Hourly snapshots now live.
   → **PHASE 1 COMPLETE. Next: Phase 2 Step 3** — awaiting user go-ahead.
+- **Phase 2 Step 3 — DONE** (`505c5f4` feat(radar): broad sentiment signal + Hormuz
+  decay). New `sentiment.ts` (weight 0.5, scores ALL-headline tone, nudges every
+  commodity, added to engine + SignalBreakdown UI). Hormuz reworked to
+  recency-weighted AVERAGE (24h half-life) so volume can't saturate it and recent
+  news dominates. Added `sentiment.test.ts` + hormuz decay/saturation tests + an
+  engine sentiment-nudge test; updated engine.test scenarios (sentiment neutralised
+  in the shared mock; damped case given its own sparse-news scenario). `npm test` =
+  **5 suites / 68 passing**; clean build OK. NOTE: not yet deployed — needs
+  `vercel --prod` to go live.
+  → **Next: Phase 2 Step 4** (topic de-duplication for news + Hormuz).
