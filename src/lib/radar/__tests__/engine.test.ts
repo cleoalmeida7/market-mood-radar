@@ -82,6 +82,12 @@ function fullRadar() {
     news("Crude jumps on oil supply disruption fears near Hormuz"),
     news("WTI jumps after an LNG tanker is seized in the Strait"),
     news("Tech stocks slip on soft earnings"),
+    // balance the broad-sentiment feed (3 bull commodity stories above → 3 bear
+    // general stories here) so the market-wide sentiment signal nets to ~0 and
+    // these scenarios isolate the per-commodity signals.
+    news("Stocks plunge as recession fears mount"),
+    news("Markets tumble on weak economic data"),
+    news("Global selloff deepens as sentiment sours"),
   ];
   const calendar: EconomicEvent[] = [
     ev({ event: "CPI YoY", country: "US", impact: "High", actual: 2.8, estimate: 3.4 }),
@@ -91,7 +97,7 @@ function fullRadar() {
 }
 
 const convictionCount = (s: CommoditySignals) =>
-  [s.technical, s.calendar, s.news, s.marketwide, s.hormuz]
+  [s.technical, s.calendar, s.news, s.marketwide, s.sentiment, s.hormuz]
     .filter((r): r is NonNullable<typeof r> => r != null)
     .filter((r) => r.confidence > 0.3).length;
 
@@ -115,11 +121,23 @@ describe("computeRadar — scenarios", () => {
     expect(t.HG.label).toBe("Strong Bear");
   });
 
-  test("low-confidence damped: NG has < 3 conviction signals, confidence < 0.5", () => {
-    expect(convictionCount(t.NG.signals)).toBeLessThan(3);
-    expect(t.NG.confidence).toBeLessThan(0.5);
-    // damping keeps the magnitude muted
-    expect(Math.abs(t.NG.score)).toBeLessThan(40);
+  test("low-confidence damped: a sparse-signal commodity stays damped", () => {
+    // NG with NO news (so sentiment/hormuz/news are neutral) and only a macro
+    // read → fewer than 3 conviction signals → damped.
+    const macro: Record<string, PriceHistory> = {
+      DXY: hist("DXY", [100, 99.8, 99.5, 99.2, 99.0, 98.8]),
+      VIX: hist("VIX", [16, 16.5, 17.2, 18, 18.8, 19.52]),
+      TNX: hist("TNX", [4.5, 4.49, 4.48, 4.475, 4.47, 4.464]),
+      SPX: hist("SPX", [5000, 4985, 4965, 4945, 4925, 4910]),
+    };
+    const radar = computeRadar(
+      { prices: { ...macro, NG: hist("NG", alt(80, 3, 0.05)) }, news: [], calendar: [] },
+      FIXED_TS,
+    );
+    const ng = radar.commodities.find((c) => c.ticker === "NG")!;
+    expect(convictionCount(ng.signals)).toBeLessThan(3);
+    expect(ng.confidence).toBeLessThan(0.5);
+    expect(Math.abs(ng.score)).toBeLessThan(40);
   });
 
   test("hormuz is null for non-energy (XAU, HG)", () => {
@@ -149,6 +167,26 @@ describe("computeRadar — scenarios", () => {
         expect(r).not.toMatch(/undefined|NaN|\[object|null/);
       }
     }
+  });
+});
+
+describe("broad market sentiment nudges every commodity", () => {
+  // Identical (flat) prices, no macro, no commodity-specific news — the ONLY
+  // thing that differs between the two runs is the overall news tone.
+  const prices = { XAU: hist("XAU", alt(80, 2000, 5)) };
+  const bullFeed = Array.from({ length: 10 }, () => news("Stocks rally higher on strong demand"));
+  const bearFeed = Array.from({ length: 10 }, () =>
+    news("Stocks plunge on weak data and recession fears"),
+  );
+  const bull = computeRadar({ prices, news: bullFeed, calendar: [] }, FIXED_TS);
+  const bear = computeRadar({ prices, news: bearFeed, calendar: [] }, FIXED_TS);
+  const xauBull = bull.commodities.find((c) => c.ticker === "XAU")!;
+  const xauBear = bear.commodities.find((c) => c.ticker === "XAU")!;
+
+  test("bullish overall news lifts a score above bearish overall news", () => {
+    expect(xauBull.signals.sentiment.score).toBeGreaterThan(0);
+    expect(xauBear.signals.sentiment.score).toBeLessThan(0);
+    expect(xauBull.score).toBeGreaterThan(xauBear.score);
   });
 });
 

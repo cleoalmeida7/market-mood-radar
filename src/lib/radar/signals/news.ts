@@ -9,18 +9,19 @@ import { type SignalResult, round3, clamp } from "@/lib/radar/signals/types";
 
 export const NEWS_WEIGHT = 0.6;
 
-const BULLISH = [
+// Shared sentiment lexicon — also used by the broad market-sentiment scorer.
+export const BULLISH = [
   "rally", "surge", "gain", "gains", "jump", "rise", "rises", "rising",
   "climb", "higher", "demand", "shortage", "tighten", "bullish", "soar",
   "boost", "support", "rebound", "strong", "upbeat",
 ];
-const BEARISH = [
+export const BEARISH = [
   "fall", "falls", "drop", "drops", "plunge", "slump", "glut", "oversupply",
   "surplus", "weak", "weaker", "lower", "bearish", "slide", "tumble",
   "decline", "pressure", "selloff", "sell-off", "downbeat",
 ];
 
-function countWords(text: string, words: string[]): number {
+export function countWords(text: string, words: string[]): number {
   let n = 0;
   for (const w of words) if (text.includes(w)) n++;
   return n;

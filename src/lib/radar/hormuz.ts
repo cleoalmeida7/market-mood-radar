@@ -55,10 +55,21 @@ function clamp(n: number, lo: number, hi: number): number {
  * Score the Hormuz supply-risk signal from a batch of news items.
  * Returns a neutral, zero-confidence signal when nothing matches.
  */
+/** Half-life (seconds) for recency weighting — a 24h-older headline counts half. */
+const HORMUZ_HALF_LIFE_SEC = 24 * 60 * 60;
+
 export function scoreHormuz(news: NewsItem[]): HormuzSignal {
   const matchedKeywordSet = new Set<string>();
   let matchedArticles = 0;
-  let directionalSum = 0; // signed, weighted contribution across articles
+  // Net = Σ(direction · articleWeight · recency); divided by Σ(weight·recency)
+  // to get a recency-weighted AVERAGE direction — so sheer volume can't inflate
+  // the magnitude, and recent headlines dominate (the war winding down fades it).
+  let directionalSum = 0;
+  let totalWeight = 0;
+
+  // Recency reference = the newest article in the batch (keeps this pure — no Date.now).
+  let newest = 0;
+  for (const item of news) if (item.datetime > newest) newest = item.datetime;
 
   for (const item of news) {
     const text = `${item.headline} ${item.summary}`.toLowerCase();
@@ -89,7 +100,13 @@ export function scoreHormuz(news: NewsItem[]): HormuzSignal {
       direction = 0.5; // topic on the radar, no directional verb → mild bullish
     else direction = 0; // balanced mix → neutral
 
-    directionalSum += direction * articleWeight;
+    // Recency weight: newest article = 1, decaying with age (24h half-life).
+    const ageSec = newest > 0 ? Math.max(0, newest - item.datetime) : 0;
+    const recency = Math.pow(0.5, ageSec / HORMUZ_HALF_LIFE_SEC);
+
+    const w = articleWeight * recency;
+    directionalSum += direction * w;
+    totalWeight += w;
   }
 
   if (matchedArticles === 0) {
@@ -103,18 +120,19 @@ export function scoreHormuz(news: NewsItem[]): HormuzSignal {
     };
   }
 
-  // Squash the weighted sum into [-1, 1]. The divisor sets how many strong
-  // articles it takes to approach saturation (~3 strong hits ≈ |0.9|).
-  const score = clamp(Math.tanh(directionalSum / 2.5), -1, 1);
+  // Recency-weighted AVERAGE direction in [-1, 1]. 80 same-direction headlines
+  // score the same as a few — volume sets confidence, not magnitude.
+  const score = totalWeight > 0 ? clamp(directionalSum / totalWeight, -1, 1) : 0;
 
-  // Confidence scales with corroboration; ~3 articles ≈ full confidence.
-  const confidence = clamp(matchedArticles / 3, 0, 1);
+  // Confidence scales with (recency-discounted) corroboration; ~3 fresh strong
+  // articles ≈ full confidence.
+  const confidence = clamp(totalWeight / 3, 0, 1);
 
   const matchedKeywords = [...matchedKeywordSet];
   const dir = score > 0.1 ? "bullish" : score < -0.1 ? "bearish" : "mixed";
   const reasons = [
     `${matchedArticles} headline${matchedArticles === 1 ? "" : "s"} mention ` +
-      `${matchedKeywords.join(", ")} → ${dir} oil/gas (Hormuz supply risk)`,
+      `${matchedKeywords.join(", ")} → ${dir} oil/gas (Hormuz supply risk, recency-weighted)`,
   ];
 
   return {

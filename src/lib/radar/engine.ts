@@ -21,6 +21,7 @@ import { scoreTechnical, TECHNICAL_WEIGHT } from "@/lib/radar/signals/technical"
 import { scoreCalendar, CALENDAR_WEIGHT } from "@/lib/radar/signals/calendar";
 import { scoreNews, NEWS_WEIGHT } from "@/lib/radar/signals/news";
 import { scoreMarketwide, MARKETWIDE_WEIGHT } from "@/lib/radar/signals/marketwide";
+import { scoreMarketSentiment, SENTIMENT_WEIGHT } from "@/lib/radar/signals/sentiment";
 import { scoreHormuz } from "@/lib/radar/hormuz";
 
 // README leaves Hormuz weight as "—"; we give the focused geopolitical overlay
@@ -33,13 +34,15 @@ export const CONVICTION_CONFIDENCE = 0.3;
 export const FULL_CONVICTION_SIGNALS = 3;
 
 export type SignalSource =
-  | "technical" | "calendar" | "news" | "marketwide" | "hormuz";
+  | "technical" | "calendar" | "news" | "marketwide" | "sentiment" | "hormuz";
 
 export interface CommoditySignals {
   technical: SignalResult;
   calendar: SignalResult;
   news: SignalResult;
   marketwide: SignalResult;
+  /** Broad market-news tone — same value across all commodities. */
+  sentiment: SignalResult;
   /** null for non-energy commodities (Hormuz affects CL & NG only). */
   hormuz: SignalResult | null;
 }
@@ -94,13 +97,18 @@ function toResult(r: SignalResult): SignalResult {
   return { score: r.score, confidence: r.confidence, reasons: r.reasons };
 }
 
-function gatherSignals(ticker: CommodityTicker, inputs: RadarInputs): CommoditySignals {
+function gatherSignals(
+  ticker: CommodityTicker,
+  inputs: RadarInputs,
+  sentiment: SignalResult,
+): CommoditySignals {
   const isEnergy = ticker === "CL" || ticker === "NG";
   return {
     technical: scoreTechnical(inputs.prices[ticker]),
     calendar: scoreCalendar(ticker, inputs.calendar),
     news: scoreNews(ticker, inputs.news),
     marketwide: scoreMarketwide(ticker, inputs.prices),
+    sentiment, // market-wide — computed once, shared across commodities
     hormuz: isEnergy ? toResult(scoreHormuz(inputs.news)) : null,
   };
 }
@@ -119,6 +127,7 @@ function fuseCommodity(ticker: CommodityTicker, signals: CommoditySignals): Comm
     { source: "calendar", weight: CALENDAR_WEIGHT, result: signals.calendar },
     { source: "news", weight: NEWS_WEIGHT, result: signals.news },
     { source: "marketwide", weight: MARKETWIDE_WEIGHT, result: signals.marketwide },
+    { source: "sentiment", weight: SENTIMENT_WEIGHT, result: signals.sentiment },
   ];
   if (signals.hormuz) {
     entries.push({ source: "hormuz", weight: HORMUZ_WEIGHT, result: signals.hormuz });
@@ -187,8 +196,10 @@ export function computeRadar(
   inputs: RadarInputs,
   generatedAt: string = new Date().toISOString(),
 ): RadarResult {
+  // Broad market sentiment is a single market-wide read — compute once, share.
+  const sentiment = scoreMarketSentiment(inputs.news);
   const commodities = COMMODITY_TICKERS.map((ticker) =>
-    fuseCommodity(ticker, gatherSignals(ticker, inputs)),
+    fuseCommodity(ticker, gatherSignals(ticker, inputs, sentiment)),
   );
 
   // Overall mood = confidence-weighted average of commodity scores.

@@ -10,6 +10,7 @@ const SOURCES: { key: keyof CommoditySignals; label: string; weight: string }[] 
   { key: "calendar", label: "Calendar", weight: "0.8" },
   { key: "marketwide", label: "Market-wide", weight: "0.7" },
   { key: "news", label: "News", weight: "0.6" },
+  { key: "sentiment", label: "Mkt sentiment", weight: "0.5" },
   { key: "hormuz", label: "Hormuz", weight: "0.9" },
 ];
 
