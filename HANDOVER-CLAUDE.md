@@ -107,10 +107,10 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 5 Step 8 DONE** (mood-over-time chart on /radar) — on top of Phase 4 +
-the two accuracy improvements (24mo history; weight optimizer). Next: **Phase 5,
-Step 9** (alerts upgrade: last-fired, send-test, enable/disable) — **awaiting go-ahead.**
-⚠️ Steps 7–8 + the accuracy work are NOT yet deployed — run `vercel --prod`.
+▶ **PHASE 5 Step 10 DONE** (reasons → headlines drill-down). **Step 9 SKIPPED**
+(alerts upgrade — deferred: Resend sender domain not verified, so alert emails
+aren't sending). Next: **Phase 5, Step 11** (light/dark toggle) — **awaiting go-ahead.**
+⚠️ Steps 7, 8, 10 + the accuracy work are NOT yet deployed — run `vercel --prod`.
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3).
@@ -294,4 +294,18 @@ domain is verified.)_
   returns the 7d window with current dates, bad ticker → 400, `/radar` renders the
   chart. `npm test` = 10 suites / 101 passing; clean build (12 routes).
   → **Next: Phase 5 Step 9** (alerts upgrade) — awaiting user go-ahead.
+  ⚠️ NOT yet deployed.
+- **Phase 5 Step 9 — SKIPPED** (deferred). Alerts upgrade postponed: Resend isn't
+  sending because the sender domain/email isn't verified yet. Revisit once email
+  delivery works.
+- **Phase 5 Step 10 — DONE** (`feat(ui): reasons drill-down to headlines`). The
+  `/radar` "Why these scores?" panel (`Explainability`) now takes the `/api/news`
+  data and, per commodity, renders an expandable "📰 Show N underlying headlines"
+  toggle beneath the reasons — revealing the actual Finnhub headlines (clickable,
+  source + time-ago) that fed that commodity's news signal. Refactored the per-
+  commodity block into a `CommodityExplain` subcomponent with its own open/closed
+  state. Only shows when that commodity has matched headlines. Clean build (12
+  routes); news data confirmed flowing (e.g. XAU 3, CL 18 headlines). NOTE: the
+  drill-down is client-rendered (not in SSR HTML), so verify in the live app.
+  → **Next: Phase 5 Step 11** (light/dark toggle) — awaiting user go-ahead.
   ⚠️ NOT yet deployed.

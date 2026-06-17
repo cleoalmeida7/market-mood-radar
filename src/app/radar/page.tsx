@@ -92,7 +92,7 @@ export default function RadarPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {data ? (
-          <Explainability commodities={data.commodities} />
+          <Explainability commodities={data.commodities} news={news.data} />
         ) : (
           <Skeleton className="h-96 w-full" />
         )}
