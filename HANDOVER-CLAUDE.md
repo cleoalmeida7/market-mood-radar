@@ -97,7 +97,8 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **Starting: PHASE 1, STEP 1** (Jest tests for indicators/hormuz/signals).
+▶ **Phase 1, Step 1 — DONE.** Next: **Phase 1, Step 2** (user confirms cron-job.org
+setup per `CRON_SETUP.md` — manual).
 Rule: commit after each step, update this file, then WAIT for user confirmation
 before the next phase.
 
@@ -159,4 +160,7 @@ domain is verified.)_
 
 ## Progress log
 
-- _(updates appended here after each completed step)_
+- **Phase 1 Step 1 — DONE** (`2ca4c40` test: indicators, hormuz and signals coverage).
+  Added `indicators.test.ts`, `hormuz.test.ts`, `signals.test.ts`. `npm test` =
+  **4 suites / 58 tests passing** (19 engine + 39 new). No issues found.
+  → **Next: Phase 1 Step 2** (confirm cron-job.org — user does this manually).
