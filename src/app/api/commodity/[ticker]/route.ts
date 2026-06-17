@@ -7,6 +7,7 @@ import {
   type CommodityTicker,
 } from "@/lib/fetchers/yahoo";
 import { computeIndicators, computeIndicatorSeries } from "@/lib/radar/indicators";
+import { readCachedPrices } from "@/lib/radar/price-cache";
 
 // GET /api/commodity/[ticker] — OHLCV history + computed indicators.
 export async function GET(
@@ -25,7 +26,12 @@ export async function GET(
   const t = upper as CommodityTicker;
 
   try {
-    const history = await fetchPriceHistory(t, { range: "6mo", interval: "1d" });
+    // Prefer the Supabase cache (12mo of bars); fall back to Yahoo if thin/empty.
+    const cached = await readCachedPrices([t]);
+    const history =
+      (cached[t]?.bars.length ?? 0) >= 60
+        ? cached[t]
+        : await fetchPriceHistory(t, { range: "1y", interval: "1d" });
     const indicators = computeIndicators(history.bars);
     const series = computeIndicatorSeries(history.bars);
     return NextResponse.json(

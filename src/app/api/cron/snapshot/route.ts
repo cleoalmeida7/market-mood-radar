@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { computeRadar } from "@/lib/radar/engine";
 import { loadRadarInputs } from "@/lib/radar/load";
+import { refreshPriceCache } from "@/lib/radar/price-cache";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 // POST/GET /api/cron/snapshot — compute the radar and write score snapshots to
@@ -29,6 +30,10 @@ async function handle(req: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 503 });
   }
 
+  // Top up the price cache from Yahoo (recent bars) before computing, so the
+  // cached history stays current for the radar reads between cron runs.
+  const cache = await refreshPriceCache("3mo");
+
   const radar = computeRadar(await loadRadarInputs());
   const capturedAt = new Date().toISOString();
 
@@ -55,7 +60,12 @@ async function handle(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, written: rows.length, capturedAt });
+  return NextResponse.json({
+    ok: true,
+    written: rows.length,
+    capturedAt,
+    priceCache: { upserted: cache.written, failed: cache.failed },
+  });
 }
 
 export const GET = handle;

@@ -1,29 +1,17 @@
-// Backfill 30 days of daily OHLCV into Supabase so trend charts have data
-// from day one. Run: npm run backfill
+// Backfill the Supabase price cache with 12 months of daily OHLCV per ticker,
+// so the radar reads from the DB (and the indicators have 50+ bars). Run once
+// after setting up Supabase; the hourly cron tops it up thereafter.
 //
 // Prereqs:
 //   1. Create the table — run scripts/schema.sql in the Supabase SQL editor.
 //   2. Set SUPABASE_URL + SUPABASE_ANON_KEY in .env.local.
-import { fetchAllPrices, ALL_TICKERS } from "../src/lib/fetchers/yahoo.ts";
-import { getSupabase, isSupabaseConfigured } from "../src/lib/supabase.ts";
-
-const DAYS = 30;
-const BATCH = 500;
-
-interface PriceRow {
-  ticker: string;
-  date: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-  yahoo_symbol: string;
-  currency: string;
-}
+//
+// Run: npm run backfill
+import { refreshPriceCache } from "../src/lib/radar/price-cache.ts";
+import { isSupabaseConfigured } from "../src/lib/supabase.ts";
 
 async function main() {
-  console.log(`=== Backfill: ${DAYS} days of daily prices → Supabase ===\n`);
+  console.log("=== Backfill: 12 months of daily prices → Supabase cache ===\n");
 
   if (!isSupabaseConfigured()) {
     console.log(
@@ -34,51 +22,11 @@ async function main() {
     return;
   }
 
-  // Fetch 3mo then trim to the last DAYS calendar days (covers weekends/holidays).
-  console.log("  Fetching price history from Yahoo (range=3mo)...");
-  const all = await fetchAllPrices({ range: "3mo", interval: "1d" });
+  console.log("  Fetching 1y of history from Yahoo and upserting...");
+  const { written, failed } = await refreshPriceCache("1y");
 
-  const cutoff = new Date(Date.now() - DAYS * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
-
-  const rows: PriceRow[] = [];
-  for (const ticker of ALL_TICKERS) {
-    const h = all[ticker];
-    if (!h) continue;
-    for (const b of h.bars) {
-      if (b.date < cutoff) continue;
-      rows.push({
-        ticker,
-        date: b.date,
-        open: b.open,
-        high: b.high,
-        low: b.low,
-        close: b.close,
-        volume: b.volume,
-        yahoo_symbol: h.yahooSymbol,
-        currency: h.currency,
-      });
-    }
-  }
-  console.log(`  Prepared ${rows.length} rows (cutoff ${cutoff}).`);
-
-  const supabase = getSupabase();
-  let written = 0;
-  for (let i = 0; i < rows.length; i += BATCH) {
-    const batch = rows.slice(i, i + BATCH);
-    const { error } = await supabase
-      .from("price_history")
-      .upsert(batch, { onConflict: "ticker,date" });
-    if (error) {
-      console.error(`  Upsert failed at batch ${i / BATCH}:`, error.message);
-      process.exit(1);
-    }
-    written += batch.length;
-    console.log(`  Upserted ${written}/${rows.length}...`);
-  }
-
-  console.log(`\n  DONE: backfilled ${written} price rows.`);
+  console.log(`\n  DONE: upserted ${written} price rows.`);
+  if (failed.length) console.warn(`  WARN: ${failed.length} issue(s): ${failed.join(", ")}`);
 }
 
 main().catch((err) => {
