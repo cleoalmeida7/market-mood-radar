@@ -26,6 +26,16 @@ and DEPLOYED to Vercel** at **https://marketresearch-tau.vercel.app**.
 ## 2. Full git log (`git log --oneline`)
 
 ```
+728e962 docs: update HANDOVER-CLAUDE.md — Phase 3 complete
+d58b62e feat(db): cache Yahoo price history in Supabase
+08694ff docs: update HANDOVER-CLAUDE.md — Phase 2 complete
+8b08bad feat(radar): topic de-duplication
+0c649e6 docs: update HANDOVER-CLAUDE.md — Phase 2 Step 3 done
+505c5f4 feat(radar): broad sentiment signal + Hormuz decay
+e68f791 docs: update HANDOVER-CLAUDE.md — Phase 1 complete
+2d456a8 docs: update HANDOVER-CLAUDE.md — Phase 1 Step 1 done
+2ca4c40 test: indicators, hormuz and signals coverage
+eeeeb7c docs: HANDOVER-CLAUDE.md for session continuity
 4801a8f docs: cron-job.org setup instructions
 37b11dc feat(ui): per-commodity signal breakdown panel
 dd5170e fix(ui): tick 'updated X ago' every second (was 5s, jumpy increments)
