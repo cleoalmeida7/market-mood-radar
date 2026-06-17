@@ -107,10 +107,10 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 4 COMPLETE** + **two user-requested accuracy improvements DONE**
-(24-month history; backtest weight optimizer wired into the engine). Next: **Phase
-5, Step 8** (mood-over-time chart on /radar) — **awaiting user go-ahead.**
-⚠️ Step 7 (`/about`) + the accuracy work are NOT yet deployed — run `vercel --prod`.
+▶ **PHASE 5 Step 8 DONE** (mood-over-time chart on /radar) — on top of Phase 4 +
+the two accuracy improvements (24mo history; weight optimizer). Next: **Phase 5,
+Step 9** (alerts upgrade: last-fired, send-test, enable/disable) — **awaiting go-ahead.**
+⚠️ Steps 7–8 + the accuracy work are NOT yet deployed — run `vercel --prod`.
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3).
@@ -283,3 +283,15 @@ domain is verified.)_
   → **Next: Phase 5 Step 8** (mood-over-time chart) — awaiting user go-ahead.
   ⚠️ NOT yet deployed — run `vercel --prod`. To re-tune later: `npm run optimize`
   then redeploy (it only adopts validated improvements; defaults are always safe).
+- **Phase 5 Step 8 — DONE** (`feat(ui): mood over time chart`). `/api/history/[ticker]`
+  now also accepts **MOOD** (the overall market-mood series the cron + seed write to
+  `radar_snapshots`). Added a "Market mood over time" card to `/radar` reusing the
+  existing `ScoreHistoryChart` (24h/7d toggle), fed by `/api/history/MOOD`. Also
+  **fixed a latent bug in `seed-snapshots.ts`**: its `select("*")` hit Supabase's
+  1000-row cap, so with 2y of data it only replayed the OLDEST ~100 days (mid-2024
+  mapped onto "today"). Now paginates via `.range()` → replays all **504 days**
+  (3,528 snapshot rows), latest point uses real recent data. Verified: `/api/history/MOOD`
+  returns the 7d window with current dates, bad ticker → 400, `/radar` renders the
+  chart. `npm test` = 10 suites / 101 passing; clean build (12 routes).
+  → **Next: Phase 5 Step 9** (alerts upgrade) — awaiting user go-ahead.
+  ⚠️ NOT yet deployed.

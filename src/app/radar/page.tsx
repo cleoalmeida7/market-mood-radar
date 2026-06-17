@@ -1,14 +1,20 @@
 "use client";
 
 import { usePolling } from "@/hooks/usePolling";
-import type { RadarResponse, NewsResponse, CalendarResponse } from "@/types/api";
+import type {
+  RadarResponse,
+  NewsResponse,
+  CalendarResponse,
+  HistoryResponse,
+} from "@/types/api";
 import { MoodGauge } from "@/components/mood-gauge";
 import { WhatsMoving } from "@/components/whats-moving";
 import { Explainability } from "@/components/explainability";
 import { NewsPanel } from "@/components/news-panel";
 import { CalendarPanel } from "@/components/calendar-panel";
 import { CorrelationMatrix } from "@/components/correlation-matrix";
-import { Card, CardContent } from "@/components/ui/card";
+import { ScoreHistoryChart } from "@/components/score-history-chart";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorCard, UpdatedAgo } from "@/components/states";
 
@@ -16,6 +22,7 @@ export default function RadarPage() {
   const radar = usePolling<RadarResponse>("/api/radar", 30_000);
   const news = usePolling<NewsResponse>("/api/news", 30_000);
   const calendar = usePolling<CalendarResponse>("/api/calendar", 60_000);
+  const moodHistory = usePolling<HistoryResponse>("/api/history/MOOD", 60_000);
 
   const data = radar.data;
 
@@ -68,6 +75,18 @@ export default function RadarPage() {
           )}
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Market mood over time</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScoreHistoryChart
+            snapshots={moodHistory.data?.snapshots ?? []}
+            warning={moodHistory.data?.warning}
+          />
+        </CardContent>
+      </Card>
 
       {data && <CorrelationMatrix spark={data.spark} />}
 

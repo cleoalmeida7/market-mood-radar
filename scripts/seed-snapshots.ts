@@ -43,15 +43,24 @@ async function main() {
   const supabase = getSupabase();
 
   console.log("Reading price_history…");
-  const { data, error } = await supabase
-    .from("price_history")
-    .select("*")
-    .order("date", { ascending: true });
-  if (error) {
-    console.error("read failed:", error.message);
-    process.exit(1);
+  // Paginate past Supabase's 1000-row default cap (10 tickers × ~2y > 5000 rows);
+  // a single select would silently return only the oldest 1000 rows.
+  const rows: PriceRow[] = [];
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from("price_history")
+      .select("*")
+      .order("date", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) {
+      console.error("read failed:", error.message);
+      process.exit(1);
+    }
+    const batch = (data ?? []) as PriceRow[];
+    rows.push(...batch);
+    if (batch.length < PAGE) break;
   }
-  const rows = (data ?? []) as PriceRow[];
   if (rows.length === 0) {
     console.log("No price_history rows — run `npm run backfill` first.");
     return;

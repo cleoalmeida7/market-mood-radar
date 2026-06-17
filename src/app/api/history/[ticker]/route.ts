@@ -1,20 +1,23 @@
 import { NextResponse } from "next/server";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
-import { COMMODITY_TICKERS, type CommodityTicker } from "@/lib/fetchers/yahoo";
+import { COMMODITY_TICKERS } from "@/lib/fetchers/yahoo";
 
 // GET /api/history/[ticker] — score-snapshot history (24h + 7d) for trend charts.
-// Reads radar_snapshots (written by the cron route). Degrades to empty when
-// Supabase isn't configured or no snapshots exist yet.
+// Accepts the 6 commodities plus "MOOD" (the overall market-mood series). Reads
+// radar_snapshots (written by the cron route). Degrades to empty when Supabase
+// isn't configured or no snapshots exist yet.
+const VALID_SERIES: readonly string[] = [...COMMODITY_TICKERS, "MOOD"];
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ ticker: string }> },
 ) {
   const { ticker } = await params;
   const upper = ticker.toUpperCase();
-  if (!(COMMODITY_TICKERS as readonly string[]).includes(upper)) {
+  if (!VALID_SERIES.includes(upper)) {
     return NextResponse.json({ error: `Unknown ticker: ${ticker}` }, { status: 400 });
   }
-  const t = upper as CommodityTicker;
+  const t = upper;
 
   if (!isSupabaseConfigured()) {
     return NextResponse.json({
