@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/radar", label: "Radar" },
   { href: "/backtest", label: "Backtest" },
   { href: "/alerts", label: "Alerts" },
+  { href: "/about", label: "About" },
 ];
 
 export function SiteNav() {

@@ -107,10 +107,10 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 4 Step 6 COMPLETE & DEPLOYED** (backtesting + /backtest pages ✅,
-2026-06-17). Next: **Phase 4, Step 7** (`/about` methodology page) — **awaiting
-user go-ahead.** Verified live: `/api/backtest/XAU` returns 204 scored days,
-`/backtest` 200.
+▶ **PHASE 4 COMPLETE** (Step 6 backtesting ✅ deployed; Step 7 `/about` methodology
+page ✅). Next: **Phase 5, Step 8** (mood-over-time chart on /radar) — **awaiting
+user go-ahead.**
+⚠️ Step 7 (`/about`) NOT yet deployed — run `vercel --prod` to push live.
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3). Production = current
@@ -234,3 +234,17 @@ domain is verified.)_
   bad ticker → 400; pages 200.
   → **Next: Phase 4 Step 7** (`/about` methodology page) — awaiting user go-ahead.
   ✅ Deployed to production 2026-06-17 (verified live: /api/backtest/XAU + /backtest).
+- **Phase 4 Step 7 — DONE** (`/about` methodology page). New client page `/about`:
+  the 6 signals + weights table (technical 1.0, Hormuz 0.9, calendar 0.8,
+  market-wide 0.7, news 0.6, sentiment 0.5), a 4-step plain-English fusion
+  explainer (weight×confidence · neutral-exclusion · ~3-signal damping ·
+  scale/clamp + mood), the 5 label bands (reusing `styleForScore`), and an "Honest
+  limitations" list. **Proof-up-front:** a live "Does it actually work?" card that
+  fetches the XAU price-model backtest and shows the directional hit range (53–58%)
+  + avg 7-day return after bullish (+1.09%) vs bearish (≈0%) reads, with caveats
+  (price-model only; edge varies by commodity — oil weaker) and a link to
+  `/backtest`. Falls back to the cited figures if the fetch is cold. Added "About"
+  to the nav. Clean `npm run build` (12 routes, 0 type errors); `/about` renders 200
+  locally. No new engine logic, so the existing **8 suites / 89 tests** still cover it.
+  → **PHASE 4 COMPLETE. Next: Phase 5 Step 8** (mood-over-time chart) — awaiting user go-ahead.
+  ⚠️ Step 7 NOT yet deployed — run `vercel --prod` to push live.
