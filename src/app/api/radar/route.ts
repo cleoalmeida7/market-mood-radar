@@ -5,6 +5,7 @@ import { ACTIVE_WEIGHTS } from "@/lib/radar/weights";
 import { COMMODITY_TICKERS } from "@/lib/fetchers/yahoo";
 import { loadRadarInputs } from "@/lib/radar/load";
 import { checkAndFireAlerts } from "@/lib/alerts";
+import { decideRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 // GET /api/radar — fused commodity scores + overall market mood.
 // Cached for 30s (Finnhub free tier = 60 calls/min; Yahoo rate limits).
@@ -25,13 +26,24 @@ const getRadar = unstable_cache(
   { revalidate: 30, tags: ["radar"] },
 );
 
-export async function GET() {
+export async function GET(req: Request) {
+  const rl = decideRateLimit(req, "radar");
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many requests", retryAfter: rl.retryAfterSec },
+      { status: 429, headers: { ...rlHeaders, "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
   try {
     const radar = await getRadar();
     // Fire any triggered threshold alerts (throttled + no-ops without creds).
     await checkAndFireAlerts(radar);
     return NextResponse.json(radar, {
-      headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30" },
+      headers: {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30",
+        ...rlHeaders,
+      },
     });
   } catch (err) {
     return NextResponse.json(

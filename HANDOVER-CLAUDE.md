@@ -107,10 +107,10 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 5 COMPLETE** (Step 11 light/dark toggle ✅; Steps 8 & 10 ✅; **Step 9
-SKIPPED** — alerts upgrade deferred, Resend sender domain not verified). Next:
-**Phase 6, Step 12** (rate-limit public API routes) — **awaiting go-ahead.**
-⚠️ Steps 7, 8, 10, 11 + the accuracy work are NOT yet deployed — run `vercel --prod`.
+▶ **PHASE 6 Step 12 DONE** (rate limiting on public routes). Phase 5 complete
+(Step 9 SKIPPED — alerts upgrade deferred, Resend sender domain not verified).
+Next: **Phase 6, Step 13** (Sentry + Yahoo fallback source) — **awaiting go-ahead.**
+⚠️ Steps 7, 8, 10, 11, 12 + the accuracy work are NOT yet deployed — run `vercel --prod`.
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3).
@@ -321,4 +321,18 @@ domain is verified.)_
   KNOWN COSMETIC: Recharts components use fixed hex (gridlines/tooltip) tuned for
   dark — readable but not re-themed in light mode (follow-up if wanted).
   → **PHASE 5 COMPLETE. Next: Phase 6 Step 12** (rate limiting) — awaiting user go-ahead.
+  ⚠️ NOT yet deployed.
+- **Phase 6 Step 12 — DONE** (`feat(api): rate limiting on public routes`). New pure
+  `src/lib/rate-limit.ts` — in-memory fixed-window limiter (`rateLimit`, `clientIp`,
+  `rateLimitHeaders`, `decideRateLimit`); default **60 req/min per IP per route**,
+  override via `RATE_LIMIT_PER_MIN` env. Applied to `/api/radar`, `/api/news`,
+  `/api/calendar`: over-limit → **429 + Retry-After**, all responses carry
+  `X-RateLimit-Limit/Remaining/Reset`. Fails OPEN (limiter errors never block a
+  route). HONEST LIMITATION: per-instance on Vercel serverless (effective cap =
+  per-instance × live instances) — fine for a Hobby deploy; swap the Map for Upstash
+  for a hard global cap. No next/server import in the lib → unit-testable. Added
+  `rate-limit.test.ts` (window/limit/reset, IP parsing, headers). `npm test` =
+  **11 suites / 108 passing**; clean build; verified live: limit=3 → 4th req 429
+  with Retry-After=59 + correct headers.
+  → **PHASE 5 COMPLETE. Next: Phase 6 Step 13** (Sentry + Yahoo fallback) — awaiting go-ahead.
   ⚠️ NOT yet deployed.
