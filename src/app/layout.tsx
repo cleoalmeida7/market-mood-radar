@@ -34,6 +34,14 @@ export default function RootLayout({
           <TooltipProvider delay={150}>
             <SiteNav />
             <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6">{children}</main>
+            <footer className="border-t border-border/60">
+              <p className="mx-auto max-w-3xl px-4 py-4 text-center text-xs text-muted-foreground">
+                <strong className="font-medium">Not financial advice.</strong> Market Mood
+                Radar is a directional research signal for informational purposes only — not
+                an offer, recommendation, or solicitation to buy or sell any asset. Data may
+                be delayed or inaccurate. Always do your own research.
+              </p>
+            </footer>
             <Toaster richColors position="top-right" />
           </TooltipProvider>
         </ThemeProvider>
