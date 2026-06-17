@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScoreValue } from "@/components/score-value";
 import { ConfidenceBar } from "@/components/confidence-bar";
+import { SignalBreakdown } from "@/components/signal-breakdown";
 import { styleForScore } from "@/lib/ui/labels";
 import { COMMODITY_META } from "@/lib/radar/commodities";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,10 @@ export function Explainability({ commodities }: { commodities: CommodityScore[] 
               </ul>
 
               <ConfidenceBar confidence={c.confidence} fill={style.fill} className="mt-3" />
+
+              <div className="mt-3">
+                <SignalBreakdown signals={c.signals} />
+              </div>
             </div>
           );
         })}

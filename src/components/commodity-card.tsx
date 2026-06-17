@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkline } from "@/components/sparkline";
 import { ConfidenceBar } from "@/components/confidence-bar";
 import { ScoreValue } from "@/components/score-value";
+import { SignalBreakdown } from "@/components/signal-breakdown";
 import { styleForScore } from "@/lib/ui/labels";
 import { COMMODITY_META } from "@/lib/radar/commodities";
 import { cn } from "@/lib/utils";
@@ -53,6 +54,8 @@ export function CommodityCard({ commodity, spark }: CommodityCardProps) {
           <p className="line-clamp-2 text-xs text-muted-foreground" title={topReason}>
             {topReason}
           </p>
+
+          <SignalBreakdown signals={commodity.signals} />
         </CardContent>
       </Card>
     </Link>
