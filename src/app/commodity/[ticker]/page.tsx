@@ -48,9 +48,15 @@ export default function CommodityPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center justify-between">
         <Link href="/" className="text-sm text-muted-foreground hover:underline">
           ← Dashboard
+        </Link>
+        <Link
+          href={`/backtest/${ticker}`}
+          className="text-sm text-primary hover:underline"
+        >
+          View backtest →
         </Link>
       </div>
 

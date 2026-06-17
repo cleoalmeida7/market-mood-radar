@@ -107,8 +107,9 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 3 COMPLETE** (Step 5 Yahoo price cache ✅). Next: **Phase 4, Step 6**
-(backtesting + /backtest page) — **awaiting user go-ahead.**
+▶ **PHASE 4 Step 6 COMPLETE** (backtesting + /backtest pages ✅). Next: **Phase 4,
+Step 7** (`/about` methodology page) — **awaiting user go-ahead.**
+⚠️ Step 6 NOT yet deployed — run `vercel --prod` to push the backtest live.
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3). Production = current
@@ -213,3 +214,22 @@ domain is verified.)_
   passing**; clean build OK. ✅ Deployed to production 2026-06-17 (verified live:
   50-day MA / MACD driven by the Supabase cache).
   → **PHASE 3 COMPLETE. Next: Phase 4 Step 6** (backtesting) — awaiting user go-ahead.
+- **Phase 4 Step 6 — DONE** (backtesting engine + `/backtest` pages). New PURE
+  `backtest.ts`: `runBacktest(ticker, commodity, market, generatedAt?)` replays a
+  **price-only** score at each past day — technical + market-wide signals blended
+  by weight×confidence (neutral-exclusion), **no 5-signal damping** (would crush a
+  2-signal score) — and scores it vs actual forward returns at **1/3/7 trading
+  days**: hit rate, Pearson correlation, long/short avg returns, and avg return per
+  mood band. News/calendar/sentiment/Hormuz are live-only (not stored per-day), so
+  the backtest deliberately isolates the price model (documented in the UI). Warm-up
+  = 50 bars (MA-50); `NEUTRAL_BAND=10` gates directional days. New `GET
+  /api/backtest/[ticker]` (loadPrices cache-preferred, `unstable_cache` 1h). UI:
+  `/backtest` index (commodity grid) + `/backtest/[ticker]` (stats table + score-
+  over-time line + avg-return-by-band bar w/ horizon toggle), nav link, and a "View
+  backtest →" link on each commodity page. Added `backtest.test.ts` (pearson,
+  forward-return math, stats/bucket counts, guards). `npm test` = **8 suites / 89
+  passing**; clean `npm run build` (0 type errors). Smoke-tested live: XAU 204
+  scored days, bull-band 7d avg +1.09% vs bear ~−0.05%, hit 53–58%; CL 7d hit 43%;
+  bad ticker → 400; pages 200.
+  → **Next: Phase 4 Step 7** (`/about` methodology page) — awaiting user go-ahead.
+  ⚠️ Step 6 NOT yet deployed — run `vercel --prod` to push live.

@@ -5,8 +5,15 @@ import type { RadarResult, CommodityScore } from "@/lib/radar/engine";
 import type { OHLCV } from "@/lib/fetchers/yahoo";
 import type { IndicatorSet, IndicatorSeriesPoint } from "@/lib/radar/indicators";
 import type { NewsItem, EconomicEvent } from "@/lib/fetchers/finnhub";
+import type { BacktestResult } from "@/lib/radar/backtest";
 
 export type { CommodityScore, OHLCV, NewsItem, EconomicEvent, IndicatorSeriesPoint };
+export type {
+  BacktestResult,
+  BacktestPoint,
+  HorizonStats,
+  ScoreBucket,
+} from "@/lib/radar/backtest";
 
 /** GET /api/radar */
 export type RadarResponse = RadarResult & {
@@ -73,3 +80,6 @@ export interface HistoryResponse {
   } | null;
   warning?: string;
 }
+
+/** GET /api/backtest/[ticker] */
+export type BacktestResponse = BacktestResult;
