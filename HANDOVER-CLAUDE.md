@@ -107,11 +107,12 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 6 Step 13 DONE** (Sentry error monitoring + Yahoo fallback). Step 12
-rate limiting ✅; Phase 5 complete (Step 9 SKIPPED — Resend sender not verified).
-Next: **Phase 6, Step 14** (Playwright E2E smoke tests) — the LAST roadmap step —
-**awaiting go-ahead.**
-⚠️ Steps 7, 8, 10–13 + the accuracy work are NOT yet deployed — run `vercel --prod`.
+▶ **🎉 14-STEP ROADMAP COMPLETE.** Step 14 (Playwright E2E) ✅. Phases 1–6 done
+(Step 9 alerts-upgrade SKIPPED — Resend sender not verified). Sentry live in prod
+(SENTRY_DSN set in Vercel + redeployed 2026-06-17). **All prior steps deployed.**
+Possible follow-ups (not roadmap): re-enable Step 9 once Resend domain verified;
+light-mode chart re-theming; @sentry/nextjs for breadcrumbs/tracing; redact the
+Finnhub token from calendar-403 server logs (see Known issues).
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3).
@@ -356,3 +357,14 @@ domain is verified.)_
   Added `SENTRY_DSN` + `RATE_LIMIT_PER_MIN` to `.env.example`.
   → **PHASE 6, Step 14 NEXT** (Playwright E2E) — the final roadmap step. Awaiting go-ahead.
   ⚠️ NOT yet deployed.
+- **Phase 6 Step 14 — DONE** (`test: Playwright E2E smoke tests`). Installed
+  `@playwright/test` + Chromium. `playwright.config.ts` (testDir `e2e/`, single
+  Chromium project, `webServer` builds + `next start` on :3140; `PW_NO_BUILD=1` to
+  reuse a build). `e2e/smoke.spec.ts` — 7 tests: each main page renders without an
+  uncaught error (dashboard, radar, /about, /backtest, /commodity/XAU, /alerts) +
+  the light/dark toggle flips the `<html>` class. Added `data-testid="theme-toggle"`
+  for a stable selector; `npm run e2e`; tsconfig excludes `e2e`; gitignored PW
+  artifacts. **`npm run e2e` = 7 passed.** (Finnhub calendar 403 logs during the run
+  are the known free-tier degradation, handled.)
+  → **🎉 ROADMAP COMPLETE.** Sentry deployed to prod (DSN added in Vercel + redeploy).
+  Unit tests `npm test` = 12 suites / 114; E2E `npm run e2e` = 7.
