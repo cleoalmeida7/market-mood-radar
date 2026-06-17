@@ -97,8 +97,9 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **Phase 1, Step 1 — DONE.** Next: **Phase 1, Step 2** (user confirms cron-job.org
-setup per `CRON_SETUP.md` — manual).
+▶ **PHASE 1 COMPLETE** (Step 1 tests ✅, Step 2 cron-job.org ✅ — hourly TEST RUN
+returned 200). Next: **Phase 2, Step 3** (broad sentiment signal + Hormuz decay) —
+**awaiting user go-ahead.**
 Rule: commit after each step, update this file, then WAIT for user confirmation
 before the next phase.
 
@@ -164,3 +165,7 @@ domain is verified.)_
   Added `indicators.test.ts`, `hormuz.test.ts`, `signals.test.ts`. `npm test` =
   **4 suites / 58 tests passing** (19 engine + 39 new). No issues found.
   → **Next: Phase 1 Step 2** (confirm cron-job.org — user does this manually).
+- **Phase 1 Step 2 — DONE** (manual, no commit). cron-job.org job created: hourly
+  (`0 * * * *`), GET `…/api/cron/snapshot`, `Authorization: Bearer <CRON_SECRET>`
+  header. **TEST RUN = 200 OK** (snapshot written). Hourly snapshots now live.
+  → **PHASE 1 COMPLETE. Next: Phase 2 Step 3** — awaiting user go-ahead.
