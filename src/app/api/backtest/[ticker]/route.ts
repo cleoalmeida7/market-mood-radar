@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { COMMODITY_TICKERS, type CommodityTicker } from "@/lib/fetchers/yahoo";
 import { loadPrices } from "@/lib/radar/load";
 import { runBacktest } from "@/lib/radar/backtest";
+import { ACTIVE_WEIGHTS } from "@/lib/radar/weights";
 
 // GET /api/backtest/[ticker] — replay the price-model score vs forward returns.
 // Reads price history (Supabase cache preferred, Yahoo fallback) and runs the
@@ -11,8 +12,8 @@ import { runBacktest } from "@/lib/radar/backtest";
 function getBacktest(t: CommodityTicker) {
   return unstable_cache(
     async () => {
-      const prices = await loadPrices("1y");
-      return runBacktest(t, prices[t], prices);
+      const prices = await loadPrices("2y");
+      return runBacktest(t, prices[t], prices, undefined, ACTIVE_WEIGHTS);
     },
     ["backtest", t],
     { revalidate: 3600, tags: ["backtest"] },

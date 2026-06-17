@@ -31,7 +31,7 @@ export async function GET(
     const history =
       (cached[t]?.bars.length ?? 0) >= 60
         ? cached[t]
-        : await fetchPriceHistory(t, { range: "1y", interval: "1d" });
+        : await fetchPriceHistory(t, { range: "2y", interval: "1d" });
     const indicators = computeIndicators(history.bars);
     const series = computeIndicatorSeries(history.bars);
     return NextResponse.json(

@@ -1,6 +1,7 @@
-// Backfill the Supabase price cache with 12 months of daily OHLCV per ticker,
-// so the radar reads from the DB (and the indicators have 50+ bars). Run once
-// after setting up Supabase; the hourly cron tops it up thereafter.
+// Backfill the Supabase price cache with 24 months of daily OHLCV per ticker,
+// so the radar reads from the DB (indicators have 50+ bars and the backtest /
+// weight-optimizer have ~2y of data). Run once after setting up Supabase; the
+// hourly cron tops it up thereafter.
 //
 // Prereqs:
 //   1. Create the table — run scripts/schema.sql in the Supabase SQL editor.
@@ -11,7 +12,7 @@ import { refreshPriceCache } from "../src/lib/radar/price-cache.ts";
 import { isSupabaseConfigured } from "../src/lib/supabase.ts";
 
 async function main() {
-  console.log("=== Backfill: 12 months of daily prices → Supabase cache ===\n");
+  console.log("=== Backfill: 24 months of daily prices → Supabase cache ===\n");
 
   if (!isSupabaseConfigured()) {
     console.log(
@@ -22,8 +23,8 @@ async function main() {
     return;
   }
 
-  console.log("  Fetching 1y of history from Yahoo and upserting...");
-  const { written, failed } = await refreshPriceCache("1y");
+  console.log("  Fetching 2y of history from Yahoo and upserting...");
+  const { written, failed } = await refreshPriceCache("2y");
 
   console.log(`\n  DONE: upserted ${written} price rows.`);
   if (failed.length) console.warn(`  WARN: ${failed.length} issue(s): ${failed.join(", ")}`);

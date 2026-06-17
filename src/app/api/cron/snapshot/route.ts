@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { computeRadar } from "@/lib/radar/engine";
+import { ACTIVE_WEIGHTS } from "@/lib/radar/weights";
 import { loadRadarInputs } from "@/lib/radar/load";
 import { refreshPriceCache } from "@/lib/radar/price-cache";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -34,7 +35,7 @@ async function handle(req: Request) {
   // cached history stays current for the radar reads between cron runs.
   const cache = await refreshPriceCache("3mo");
 
-  const radar = computeRadar(await loadRadarInputs());
+  const radar = computeRadar(await loadRadarInputs(), undefined, ACTIVE_WEIGHTS);
   const capturedAt = new Date().toISOString();
 
   const rows = [

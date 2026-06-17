@@ -45,7 +45,7 @@ async function fetchPricesFromYahoo(
  * when the cache is empty/thin (e.g. before the first refresh).
  */
 export async function loadPrices(
-  range: YahooRange = "1y",
+  range: YahooRange = "2y",
 ): Promise<Record<string, PriceHistory>> {
   const cached = await readCachedPrices();
   if (cacheUsable(cached)) return cached;
@@ -75,7 +75,7 @@ export async function loadCalendar(): Promise<EconomicEvent[]> {
 /** Gather all radar inputs concurrently, each source failing soft. */
 export async function loadRadarInputs(): Promise<RadarInputs> {
   const [prices, news, calendar] = await Promise.all([
-    loadPrices("1y"),
+    loadPrices("2y"),
     loadNews(),
     loadCalendar(),
   ]);

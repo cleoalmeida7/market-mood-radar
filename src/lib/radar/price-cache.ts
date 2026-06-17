@@ -57,8 +57,9 @@ export function rowsToPriceHistory(rows: PriceRow[]): Record<string, PriceHistor
   return out;
 }
 
-/** How many most-recent bars to read per ticker (>1y of trading days). */
-const READ_BARS = 300;
+/** How many most-recent bars to read per ticker (~2y of trading days; under
+ * Supabase's 1000-row per-query cap since we query one ticker at a time). */
+const READ_BARS = 520;
 
 /**
  * Read cached prices for the given tickers. Queries PER TICKER for the most
@@ -93,11 +94,11 @@ export async function readCachedPrices(
 }
 
 /**
- * Fetch from Yahoo (tolerant) and upsert into the cache. Use range "1y" for the
- * initial fill and a shorter range (e.g. "1mo") for routine top-ups.
+ * Fetch from Yahoo (tolerant) and upsert into the cache. Use range "2y" for the
+ * initial fill and a shorter range (e.g. "3mo") for routine top-ups.
  */
 export async function refreshPriceCache(
-  range: YahooRange = "1y",
+  range: YahooRange = "2y",
 ): Promise<{ written: number; failed: string[] }> {
   if (!isSupabaseConfigured()) return { written: 0, failed: ["supabase not configured"] };
 

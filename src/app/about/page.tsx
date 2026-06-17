@@ -6,6 +6,7 @@ import type { BacktestResponse } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { styleForScore } from "@/lib/ui/labels";
 import { cn } from "@/lib/utils";
+import optimized from "@/lib/radar/optimized-weights.json";
 
 // Signal weights — kept in sync with the *_WEIGHT consts in the scorers.
 const WEIGHTS = [
@@ -95,6 +96,9 @@ export default function AboutPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Backtested weight tuning */}
+      <WeightTuningCard />
 
       {/* Signals */}
       <Card>
@@ -216,6 +220,85 @@ export default function AboutPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function WeightTuningCard() {
+  // The price-signal weights are grid-searched against history and adopted only
+  // if they beat the defaults out-of-sample (see weight-optimizer.ts).
+  if (!optimized.validated || !optimized.weights) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Backtested weight tuning</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          The optimizer grid-searches the price-signal weights but currently finds
+          no improvement that holds up out-of-sample, so the engine runs on the
+          documented default weights.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const w = optimized.weights;
+  const r = optimized.report;
+  const ti = w.technicalIndicators;
+  const indicatorList = [
+    ["RSI", ti.rsi],
+    ["MACD", ti.macd],
+    ["MA", ti.ma],
+    ["Bollinger", ti.bollinger],
+  ] as const;
+
+  return (
+    <Card className="border-violet-500/30 bg-violet-500/5">
+      <CardHeader>
+        <CardTitle className="text-base">Backtested weight tuning</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm text-muted-foreground">
+        <p>
+          The price-signal weights aren&rsquo;t guessed — they&rsquo;re{" "}
+          <strong>grid-searched against ~2 years of history</strong> and adopted
+          only when they beat the defaults on a held-out recent test window
+          {r ? ` (${r.combosTried} combinations tried)` : ""}. The technical and
+          market-wide weights below are the validated winners; the other signals
+          keep their defaults (they can&rsquo;t be backtested).
+        </p>
+        {r && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <Stat value={`${(r.testHitDefault * 100).toFixed(1)}%`} label="Default hit rate (test window)" tone="muted" />
+            <Stat value={`${(r.testHitBest * 100).toFixed(1)}%`} label="Tuned hit rate (test window)" tone="good" />
+            <Stat value={`+${(r.improvement * 100).toFixed(2)}pp`} label="Out-of-sample improvement" tone="good" />
+          </div>
+        )}
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Chip label={`technical ×${w.technical}`} />
+          <Chip label={`market-wide ×${w.marketwide}`} />
+          {indicatorList.map(([name, weight]) => (
+            <Chip key={name} label={`${name} ×${weight}`} dim={weight === 0} />
+          ))}
+        </div>
+        <p className="text-xs">
+          Re-tuned by running <code className="font-mono">npm run optimize</code>.
+          A weight of ×0 means that indicator was dropped because it didn&rsquo;t
+          help out-of-sample.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Chip({ label, dim }: { label: string; dim?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "rounded-md border border-border px-2 py-0.5 font-mono text-xs",
+        dim ? "text-muted-foreground/50 line-through" : "text-foreground",
+      )}
+    >
+      {label}
+    </span>
   );
 }
 

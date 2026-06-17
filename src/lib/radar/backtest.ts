@@ -11,9 +11,11 @@
 
 import type { PriceHistory, CommodityTicker } from "@/lib/fetchers/yahoo";
 import { COMMODITY_META } from "@/lib/radar/commodities";
-import { scoreTechnical, TECHNICAL_WEIGHT } from "@/lib/radar/signals/technical";
-import { scoreMarketwide, MARKETWIDE_WEIGHT } from "@/lib/radar/signals/marketwide";
+import { scoreTechnical } from "@/lib/radar/signals/technical";
+import { scoreMarketwide } from "@/lib/radar/signals/marketwide";
+import type { SignalResult } from "@/lib/radar/signals/types";
 import { labelForScore } from "@/lib/radar/engine";
+import { DEFAULT_WEIGHTS, type RadarWeights } from "@/lib/radar/weights";
 import { styleForScore, type WeatherKey } from "@/lib/ui/labels";
 
 /** Forward-return windows, in trading days. */
@@ -105,7 +107,7 @@ export function pearson(xs: number[], ys: number[]): number | null {
 // ---- Price-model score (technical + market-wide, no news) -------------------
 
 /** Each market series truncated to bars on/before `isoDate` (for a point-in-time read). */
-function marketUpTo(
+export function marketUpTo(
   market: Record<string, PriceHistory>,
   isoDate: string,
 ): Record<string, PriceHistory> {
@@ -117,19 +119,20 @@ function marketUpTo(
 }
 
 /**
- * Blend the two price-driven signals exactly as the engine does (weight ×
- * confidence, neutral-exclusion) but WITHOUT the 5-signal conviction damping —
- * that damping assumes the full scorer set and would crush a 2-signal score.
+ * Blend the two price-driven signal RESULTS into a -100..+100 score exactly as
+ * the engine does (weight × confidence, neutral-exclusion) but WITHOUT the
+ * 5-signal conviction damping — that damping assumes the full scorer set and
+ * would crush a 2-signal score. Shared by the backtest and the optimizer.
  */
-export function priceModelScore(
-  ticker: CommodityTicker,
-  commoditySlice: PriceHistory,
-  marketSlice: Record<string, PriceHistory>,
+export function blendPriceSources(
+  technical: SignalResult,
+  marketwide: SignalResult,
+  weights: RadarWeights = DEFAULT_WEIGHTS,
 ): number {
   const entries = [
-    { weight: TECHNICAL_WEIGHT, result: scoreTechnical(commoditySlice) },
-    { weight: MARKETWIDE_WEIGHT, result: scoreMarketwide(ticker, marketSlice) },
-  ].filter((e) => e.result.score !== 0 && e.result.confidence > 0);
+    { weight: weights.technical, result: technical },
+    { weight: weights.marketwide, result: marketwide },
+  ].filter((e) => e.weight > 0 && e.result.score !== 0 && e.result.confidence > 0);
 
   if (entries.length === 0) return 0;
 
@@ -142,6 +145,20 @@ export function priceModelScore(
   }
   const weighted = den === 0 ? 0 : num / den; // -1..1
   return clamp(Math.round(weighted * 100), -100, 100);
+}
+
+/** Reconstruct the price-model score at one point in time from sliced history. */
+export function priceModelScore(
+  ticker: CommodityTicker,
+  commoditySlice: PriceHistory,
+  marketSlice: Record<string, PriceHistory>,
+  weights: RadarWeights = DEFAULT_WEIGHTS,
+): number {
+  return blendPriceSources(
+    scoreTechnical(commoditySlice, weights.technicalIndicators),
+    scoreMarketwide(ticker, marketSlice),
+    weights,
+  );
 }
 
 // ---- Backtest --------------------------------------------------------------
@@ -185,6 +202,7 @@ export function runBacktest(
   commodity: PriceHistory | undefined,
   market: Record<string, PriceHistory>,
   generatedAt: string = new Date().toISOString(),
+  weights: RadarWeights = DEFAULT_WEIGHTS,
 ): BacktestResult {
   const bars = commodity?.bars ?? [];
   if (!commodity || bars.length < MIN_BARS_FOR_SCORE + 1) {
@@ -201,7 +219,7 @@ export function runBacktest(
   for (let t = MIN_BARS_FOR_SCORE - 1; t < bars.length; t++) {
     const bar = bars[t];
     const slice: PriceHistory = { ...commodity, bars: bars.slice(0, t + 1) };
-    const score = priceModelScore(ticker, slice, marketUpTo(market, bar.date));
+    const score = priceModelScore(ticker, slice, marketUpTo(market, bar.date), weights);
 
     const forward: Record<number, number | null> = {};
     for (const h of BACKTEST_HORIZONS) {

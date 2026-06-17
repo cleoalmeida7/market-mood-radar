@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { computeRadar } from "@/lib/radar/engine";
+import { ACTIVE_WEIGHTS } from "@/lib/radar/weights";
 import { COMMODITY_TICKERS } from "@/lib/fetchers/yahoo";
 import { loadRadarInputs } from "@/lib/radar/load";
 import { checkAndFireAlerts } from "@/lib/alerts";
@@ -10,7 +11,7 @@ import { checkAndFireAlerts } from "@/lib/alerts";
 const getRadar = unstable_cache(
   async () => {
     const inputs = await loadRadarInputs();
-    const radar = computeRadar(inputs);
+    const radar = computeRadar(inputs, undefined, ACTIVE_WEIGHTS);
     // 7-day close sparklines, derived from prices already fetched (no extra calls).
     const spark = Object.fromEntries(
       COMMODITY_TICKERS.map((t) => [

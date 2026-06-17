@@ -15,6 +15,7 @@
     "test:signals": "node --import tsx scripts/test-signals.ts",
     "test:engine": "node --import tsx scripts/test-engine.ts",
     "backfill": "node --env-file=.env.local --import tsx scripts/backfill.ts",
+    "optimize": "node --env-file=.env.local --import tsx scripts/optimize-weights.ts",
     "seed:snapshots": "node --env-file=.env.local --import tsx scripts/seed-snapshots.ts"
   },
   "dependencies": {
