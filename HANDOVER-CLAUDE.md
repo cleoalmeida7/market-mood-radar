@@ -107,10 +107,11 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 6 Step 12 DONE** (rate limiting on public routes). Phase 5 complete
-(Step 9 SKIPPED — alerts upgrade deferred, Resend sender domain not verified).
-Next: **Phase 6, Step 13** (Sentry + Yahoo fallback source) — **awaiting go-ahead.**
-⚠️ Steps 7, 8, 10, 11, 12 + the accuracy work are NOT yet deployed — run `vercel --prod`.
+▶ **PHASE 6 Step 13 DONE** (Sentry error monitoring + Yahoo fallback). Step 12
+rate limiting ✅; Phase 5 complete (Step 9 SKIPPED — Resend sender not verified).
+Next: **Phase 6, Step 14** (Playwright E2E smoke tests) — the LAST roadmap step —
+**awaiting go-ahead.**
+⚠️ Steps 7, 8, 10–13 + the accuracy work are NOT yet deployed — run `vercel --prod`.
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3).
@@ -151,6 +152,8 @@ SUPABASE_URL=           # Supabase project URL
 SUPABASE_ANON_KEY=      # Supabase key (we use the sb_secret_ key; server-side only, RLS off)
 RESEND_API_KEY=         # Resend — alert emails (optional)
 CRON_SECRET=            # authorises /api/cron/snapshot
+SENTRY_DSN=             # Sentry error monitoring (optional; no-op without it)
+RATE_LIMIT_PER_MIN=     # public-route rate cap per IP (optional; default 60)
 ```
 _(Optional, not in example: `ALERTS_FROM_EMAIL` to override the Resend sender once a
 domain is verified.)_
@@ -335,4 +338,21 @@ domain is verified.)_
   **11 suites / 108 passing**; clean build; verified live: limit=3 → 4th req 429
   with Retry-After=59 + correct headers.
   → **PHASE 5 COMPLETE. Next: Phase 6 Step 13** (Sentry + Yahoo fallback) — awaiting go-ahead.
+  ⚠️ NOT yet deployed.
+- **Phase 6 Step 13 — DONE** (`feat(ops): Sentry monitoring + Yahoo fallback`). Two
+  parts. **(a) Error monitoring:** new `src/lib/observability.ts` — a dependency-FREE
+  Sentry transport that POSTs events to Sentry's ingest API via the envelope protocol
+  (`parseDsn`/`buildEvent`/`buildEnvelope` are pure + unit-tested). `captureError()`
+  is fire-and-forget, never throws, and is a **no-op (console fallback) unless
+  `SENTRY_DSN` is set** — so zero overhead/build-risk until opted in (chose this over
+  @sentry/nextjs to avoid a heavy dep + Turbopack config). Wired via new
+  `src/instrumentation.ts` (`onRequestError` catches uncaught server/route errors)
+  AND the catch blocks of `/api/radar` (500), `/api/commodity` + `/api/backtest`
+  (502). Scope caveat: exceptions/messages only — no breadcrumbs/tracing/replay (add
+  @sentry/nextjs if needed). **(b) Yahoo fallback:** `fetchPriceHistory` now tries
+  `query1.finance.yahoo.com` then falls back to `query2` on any transport/HTTP failure
+  (CHART_HOSTS loop). Added `observability.test.ts`. `npm test` = **12 suites / 114
+  passing**; clean build; server boots with instrumentation active (radar/home 200).
+  Added `SENTRY_DSN` + `RATE_LIMIT_PER_MIN` to `.env.example`.
+  → **PHASE 6, Step 14 NEXT** (Playwright E2E) — the final roadmap step. Awaiting go-ahead.
   ⚠️ NOT yet deployed.

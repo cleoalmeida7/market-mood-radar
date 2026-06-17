@@ -95,7 +95,13 @@ interface YahooChartResponse {
   };
 }
 
-const CHART_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
+// Yahoo serves the same chart API from two hosts; query2 is the documented
+// fallback when query1 is rate-limited or unreachable.
+const CHART_HOSTS = [
+  "https://query1.finance.yahoo.com",
+  "https://query2.finance.yahoo.com",
+] as const;
+const CHART_PATH = "/v8/finance/chart";
 
 // A browser-like UA reduces the chance of being blocked by Yahoo.
 const UA =
@@ -117,13 +123,28 @@ export async function fetchPriceHistory(
   const symbol = YAHOO_SYMBOLS[ticker];
   if (!symbol) throw new Error(`Unknown ticker: ${ticker}`);
 
-  const url =
-    `${CHART_BASE}/${encodeURIComponent(symbol)}` +
+  const query =
+    `/${encodeURIComponent(symbol)}` +
     `?range=${range}&interval=${interval}&includePrePost=false`;
 
-  const json = await fetchJson<YahooChartResponse>(url, {
-    headers: { "User-Agent": UA, Accept: "application/json" },
-  });
+  // Try query1, then fall back to query2 on any transport/HTTP failure.
+  let json: YahooChartResponse | undefined;
+  let lastErr: unknown;
+  for (const host of CHART_HOSTS) {
+    try {
+      json = await fetchJson<YahooChartResponse>(`${host}${CHART_PATH}${query}`, {
+        headers: { "User-Agent": UA, Accept: "application/json" },
+      });
+      break;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  if (!json) {
+    throw lastErr instanceof Error
+      ? lastErr
+      : new Error(`Yahoo unreachable for ${symbol}: ${String(lastErr)}`);
+  }
 
   if (json.chart.error) {
     throw new Error(

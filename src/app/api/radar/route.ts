@@ -6,6 +6,7 @@ import { COMMODITY_TICKERS } from "@/lib/fetchers/yahoo";
 import { loadRadarInputs } from "@/lib/radar/load";
 import { checkAndFireAlerts } from "@/lib/alerts";
 import { decideRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+import { captureError } from "@/lib/observability";
 
 // GET /api/radar — fused commodity scores + overall market mood.
 // Cached for 30s (Finnhub free tier = 60 calls/min; Yahoo rate limits).
@@ -46,6 +47,7 @@ export async function GET(req: Request) {
       },
     });
   } catch (err) {
+    captureError(err, { route: "/api/radar" });
     return NextResponse.json(
       { error: "Failed to compute radar", detail: err instanceof Error ? err.message : String(err) },
       { status: 500 },

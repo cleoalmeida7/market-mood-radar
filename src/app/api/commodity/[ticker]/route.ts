@@ -8,6 +8,7 @@ import {
 } from "@/lib/fetchers/yahoo";
 import { computeIndicators, computeIndicatorSeries } from "@/lib/radar/indicators";
 import { readCachedPrices } from "@/lib/radar/price-cache";
+import { captureError } from "@/lib/observability";
 
 // GET /api/commodity/[ticker] — OHLCV history + computed indicators.
 export async function GET(
@@ -47,6 +48,7 @@ export async function GET(
       { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30" } },
     );
   } catch (err) {
+    captureError(err, { route: "/api/commodity", ticker: t });
     return NextResponse.json(
       { error: "Failed to fetch price history", detail: err instanceof Error ? err.message : String(err) },
       { status: 502 },

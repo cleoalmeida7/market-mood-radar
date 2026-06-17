@@ -4,6 +4,7 @@ import { COMMODITY_TICKERS, type CommodityTicker } from "@/lib/fetchers/yahoo";
 import { loadPrices } from "@/lib/radar/load";
 import { runBacktest } from "@/lib/radar/backtest";
 import { ACTIVE_WEIGHTS } from "@/lib/radar/weights";
+import { captureError } from "@/lib/observability";
 
 // GET /api/backtest/[ticker] — replay the price-model score vs forward returns.
 // Reads price history (Supabase cache preferred, Yahoo fallback) and runs the
@@ -39,6 +40,7 @@ export async function GET(
       headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=3600" },
     });
   } catch (err) {
+    captureError(err, { route: "/api/backtest", ticker: upper });
     return NextResponse.json(
       { error: "Failed to run backtest", detail: err instanceof Error ? err.message : String(err) },
       { status: 502 },
