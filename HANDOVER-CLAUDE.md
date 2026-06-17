@@ -97,9 +97,10 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ## 4. Where we are
 
-▶ **PHASE 2 COMPLETE** (Step 3 sentiment+Hormuz decay ✅, Step 4 topic dedup ✅).
-Next: **Phase 3, Step 5** (cache 12mo Yahoo history in Supabase) — **awaiting user
-go-ahead.** NOT yet deployed — Phase 2 engine changes need `vercel --prod` to go live.
+▶ **PHASE 3 COMPLETE** (Step 5 Yahoo price cache ✅). Next: **Phase 4, Step 6**
+(backtesting + /backtest page) — **awaiting user go-ahead.**
+⚠️ Phases 2 & 3 NOT yet deployed — run `vercel --prod` to push live.
+Note: `price_history` now holds 12 months (2,524 rows) for all 10 tickers.
 Rule: commit after each step, update this file, then WAIT for user confirmation
 before the next phase.
 
@@ -188,3 +189,14 @@ domain is verified.)_
   passing**; clean build OK.
   → **PHASE 2 COMPLETE. Next: Phase 3 Step 5** — awaiting user go-ahead.
   ⚠️ Phase 2 changes NOT yet deployed — run `vercel --prod` to push live.
+- **Phase 3 Step 5 — DONE** (`d58b62e` feat(db): cache Yahoo price history in
+  Supabase). New `price-cache.ts`: `refreshPriceCache(range)` fetches Yahoo +
+  upserts `price_history`; `readCachedPrices()` reads back PER-TICKER (most-recent
+  300 bars — avoids Supabase's 1000-row cap). `load.ts` now prefers the cache
+  (≥60 bars/commodity) and falls back to Yahoo; commodity route does the same; the
+  cron tops up the cache (`refreshPriceCache("3mo")`) each run. `backfill.ts`
+  rewritten to seed 12 months. Ran backfill → **2,524 rows**; verified cache reads
+  return **253 bars/ticker** so MA-50/MACD/RSI are now meaningful. Added
+  `price-cache.test.ts` (pure `rowsToPriceHistory`). `npm test` = **7 suites / 78
+  passing**; clean build OK.
+  → **PHASE 3 COMPLETE. Next: Phase 4 Step 6** (backtesting) — awaiting user go-ahead.
