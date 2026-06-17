@@ -13,10 +13,9 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import type { ScoreSnapshot } from "@/types/api";
+import { useChartPalette } from "@/components/use-chart-palette";
 
 type Range = "24h" | "7d";
-
-const AXIS = { stroke: "#71717a", fontSize: 11 } as const;
 
 export function ScoreHistoryChart({
   snapshots,
@@ -26,6 +25,8 @@ export function ScoreHistoryChart({
   warning?: string;
 }) {
   const [range, setRange] = useState<Range>("7d");
+  const p = useChartPalette();
+  const AXIS = { stroke: p.axis, fontSize: 11 };
 
   const cutoff = Date.now() - (range === "24h" ? 24 : 24 * 7) * 60 * 60 * 1000;
   const data = snapshots
@@ -65,19 +66,19 @@ export function ScoreHistoryChart({
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="#3f3f46" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke={p.grid} strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="t" tick={AXIS} minTickGap={40} />
             <YAxis tick={AXIS} domain={[-100, 100]} ticks={[-100, -50, 0, 50, 100]} width={40} />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#18181b",
-                border: "1px solid #3f3f46",
+                backgroundColor: p.tooltipBg,
+                border: `1px solid ${p.tooltipBorder}`,
                 borderRadius: 8,
                 fontSize: 12,
               }}
-              labelStyle={{ color: "#a1a1aa" }}
+              labelStyle={{ color: p.tooltipLabel }}
             />
-            <ReferenceLine y={0} stroke="#52525b" />
+            <ReferenceLine y={0} stroke={p.ref} />
             <Line type="monotone" dataKey="score" stroke="#a78bfa" dot={false} strokeWidth={2} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>

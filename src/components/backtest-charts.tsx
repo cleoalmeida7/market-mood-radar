@@ -16,18 +16,8 @@ import {
 } from "recharts";
 import type { BacktestResult } from "@/types/api";
 import { styleForScore, type WeatherKey } from "@/lib/ui/labels";
+import { useChartPalette } from "@/components/use-chart-palette";
 import { cn } from "@/lib/utils";
-
-const AXIS = { stroke: "#71717a", fontSize: 11 } as const;
-const TOOLTIP = {
-  contentStyle: {
-    backgroundColor: "#18181b",
-    border: "1px solid #3f3f46",
-    borderRadius: 8,
-    fontSize: 12,
-  },
-  labelStyle: { color: "#a1a1aa" },
-} as const;
 
 const REP_SCORE: Record<WeatherKey, number> = {
   bull: 80,
@@ -43,6 +33,17 @@ const pct = (x: number | null, digits = 2) =>
 
 export function BacktestCharts({ result }: { result: BacktestResult }) {
   const [horizon, setHorizon] = useState<number>(7);
+  const pal = useChartPalette();
+  const AXIS = { stroke: pal.axis, fontSize: 11 };
+  const TOOLTIP = {
+    contentStyle: {
+      backgroundColor: pal.tooltipBg,
+      border: `1px solid ${pal.tooltipBorder}`,
+      borderRadius: 8,
+      fontSize: 12,
+    },
+    labelStyle: { color: pal.tooltipLabel },
+  };
 
   const scoreData = result.points.map((p) => ({
     t: new Date(`${p.date}T00:00:00Z`).toLocaleDateString(undefined, {
@@ -65,11 +66,11 @@ export function BacktestCharts({ result }: { result: BacktestResult }) {
       {scoreData.length >= 2 ? (
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={scoreData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="#3f3f46" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke={pal.grid} strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="t" tick={AXIS} minTickGap={48} />
             <YAxis tick={AXIS} domain={[-100, 100]} ticks={[-100, -50, 0, 50, 100]} width={40} />
             <Tooltip {...TOOLTIP} />
-            <ReferenceLine y={0} stroke="#52525b" />
+            <ReferenceLine y={0} stroke={pal.ref} />
             <Line
               type="monotone"
               dataKey="score"
@@ -111,7 +112,7 @@ export function BacktestCharts({ result }: { result: BacktestResult }) {
 
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={buckets} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke="#3f3f46" strokeDasharray="3 3" vertical={false} />
+          <CartesianGrid stroke={pal.grid} strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="label" tick={AXIS} />
           <YAxis tick={AXIS} width={48} tickFormatter={(v) => `${v}%`} />
           <Tooltip
@@ -121,7 +122,7 @@ export function BacktestCharts({ result }: { result: BacktestResult }) {
               return [`${value}%`, `avg ${horizon}d return (n=${n})`];
             }}
           />
-          <ReferenceLine y={0} stroke="#52525b" />
+          <ReferenceLine y={0} stroke={pal.ref} />
           <Bar dataKey="ret" radius={[3, 3, 0, 0]} isAnimationActive={false}>
             {buckets.map((b) => (
               <Cell key={b.key} fill={hexFor(b.key)} />

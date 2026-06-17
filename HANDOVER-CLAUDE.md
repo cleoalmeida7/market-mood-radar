@@ -111,8 +111,9 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 (Step 9 alerts-upgrade SKIPPED — Resend sender not verified). Sentry live in prod
 (SENTRY_DSN set in Vercel + redeployed 2026-06-17). **All prior steps deployed.**
 Possible follow-ups (not roadmap): re-enable Step 9 once Resend domain verified;
-light-mode chart re-theming; @sentry/nextjs for breadcrumbs/tracing; redact the
-Finnhub token from calendar-403 server logs (see Known issues).
+@sentry/nextjs for breadcrumbs/tracing; redact the Finnhub token from calendar-403
+server logs (see Known issues). DONE: light-mode chart re-theming (all Recharts
+neutrals now theme-aware via `useChartPalette`).
 ✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
 Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
 50-day MA / MACD / RSI driven by the Supabase cache (Phase 3).

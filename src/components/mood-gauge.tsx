@@ -7,11 +7,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { styleForScore } from "@/lib/ui/labels";
+import { useChartPalette } from "@/components/use-chart-palette";
 import { cn } from "@/lib/utils";
 
 /** Large semicircle gauge for the overall market mood (-100..+100). */
 export function MoodGauge({ score, label }: { score: number; label: string }) {
   const style = styleForScore(score);
+  const pal = useChartPalette();
   const sign = score > 0 ? "+" : "";
 
   return (
@@ -26,7 +28,7 @@ export function MoodGauge({ score, label }: { score: number; label: string }) {
           data={[{ value: score, fill: style.hex }]}
         >
           <PolarAngleAxis type="number" domain={[-100, 100]} tick={false} />
-          <RadialBar background dataKey="value" cornerRadius={14} />
+          <RadialBar background={{ fill: pal.track }} dataKey="value" cornerRadius={14} />
         </RadialBarChart>
       </ResponsiveContainer>
 
