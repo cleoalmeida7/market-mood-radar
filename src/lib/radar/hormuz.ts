@@ -6,6 +6,7 @@
 // This signal ONLY affects CL (WTI Crude) and NG (Natural Gas).
 
 import type { NewsItem } from "@/lib/fetchers/finnhub";
+import { dedupeNews } from "@/lib/radar/dedup";
 
 /** Commodities the Hormuz signal is allowed to influence. */
 export const HORMUZ_AFFECTS = ["CL", "NG"] as const;
@@ -67,11 +68,14 @@ export function scoreHormuz(news: NewsItem[]): HormuzSignal {
   let directionalSum = 0;
   let totalWeight = 0;
 
+  // De-duplicate first so one widely-syndicated story counts once, not N times.
+  const items = dedupeNews(news);
+
   // Recency reference = the newest article in the batch (keeps this pure — no Date.now).
   let newest = 0;
-  for (const item of news) if (item.datetime > newest) newest = item.datetime;
+  for (const item of items) if (item.datetime > newest) newest = item.datetime;
 
-  for (const item of news) {
+  for (const item of items) {
     const text = `${item.headline} ${item.summary}`.toLowerCase();
 
     // Which Hormuz keywords appear in this article?

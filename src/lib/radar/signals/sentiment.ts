@@ -5,6 +5,7 @@
 
 import type { NewsItem } from "@/lib/fetchers/finnhub";
 import { BULLISH, BEARISH, countWords } from "@/lib/radar/signals/news";
+import { dedupeNews } from "@/lib/radar/dedup";
 import { type SignalResult, round3, clamp } from "@/lib/radar/signals/types";
 
 export const SENTIMENT_WEIGHT = 0.5;
@@ -20,7 +21,8 @@ export function scoreMarketSentiment(news: NewsItem[]): SignalResult {
   let bull = 0;
   let bear = 0;
 
-  for (const item of news) {
+  // De-duplicate so one widely-syndicated story doesn't dominate the tone.
+  for (const item of dedupeNews(news)) {
     const text = `${item.headline} ${item.summary}`.toLowerCase();
     const b = countWords(text, BULLISH);
     const s = countWords(text, BEARISH);

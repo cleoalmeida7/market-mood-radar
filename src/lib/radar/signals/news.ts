@@ -5,6 +5,7 @@
 import type { NewsItem } from "@/lib/fetchers/finnhub";
 import type { CommodityTicker } from "@/lib/fetchers/yahoo";
 import { COMMODITY_META } from "@/lib/radar/commodities";
+import { dedupeNews } from "@/lib/radar/dedup";
 import { type SignalResult, round3, clamp } from "@/lib/radar/signals/types";
 
 export const NEWS_WEIGHT = 0.6;
@@ -54,7 +55,8 @@ export function scoreNews(
   let relevant = 0;
   const samples: string[] = [];
 
-  for (const item of news) {
+  // De-duplicate: the same story echoed across outlets counts once, not N times.
+  for (const item of dedupeNews(news)) {
     const text = `${item.headline} ${item.summary}`.toLowerCase();
     if (!mentionsCommodity(text, meta.keywords)) continue;
     relevant++;

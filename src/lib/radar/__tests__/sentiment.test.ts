@@ -59,11 +59,23 @@ describe("scoreMarketSentiment", () => {
     expect(Math.abs(r.score)).toBeLessThan(0.5);
   });
 
-  test("confidence rises with headline volume", () => {
+  test("confidence rises with the number of DISTINCT bullish stories", () => {
     const few = scoreMarketSentiment([mk("Stocks rally higher")]);
-    const many = scoreMarketSentiment(
-      Array.from({ length: 12 }, () => mk("Stocks rally higher on strong demand")),
-    );
+    const many = scoreMarketSentiment([
+      mk("Stocks rally on strong demand"),
+      mk("Markets surge to record highs"),
+      mk("Shares jump as the economy rebounds"),
+      mk("Equities climb on upbeat data"),
+      mk("Indexes soar as confidence rises"),
+      mk("Wall Street gains as the outlook brightens"),
+      mk("Bonds rally, yields tighten"),
+      mk("Risk appetite boosts global shares"),
+      mk("Buying lifts the broader market higher"),
+      mk("Optimism returns, demand strong"),
+      mk("Prices climb as sentiment improves"),
+      mk("Growth accelerates, stocks advance"),
+    ]);
+    // identical copies would dedupe to one — distinct stories build confidence
     expect(many.confidence).toBeGreaterThan(few.confidence);
   });
 });

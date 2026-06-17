@@ -174,10 +174,22 @@ describe("broad market sentiment nudges every commodity", () => {
   // Identical (flat) prices, no macro, no commodity-specific news — the ONLY
   // thing that differs between the two runs is the overall news tone.
   const prices = { XAU: hist("XAU", alt(80, 2000, 5)) };
-  const bullFeed = Array.from({ length: 10 }, () => news("Stocks rally higher on strong demand"));
-  const bearFeed = Array.from({ length: 10 }, () =>
-    news("Stocks plunge on weak data and recession fears"),
-  );
+  const bullFeed = [
+    news("Stocks rally on strong demand"),
+    news("Markets surge to record highs"),
+    news("Shares jump as the economy rebounds"),
+    news("Equities climb on upbeat data"),
+    news("Indexes soar as confidence rises"),
+    news("Wall Street gains as the outlook brightens"),
+  ];
+  const bearFeed = [
+    news("Stocks plunge on weak data"),
+    news("Markets tumble as recession fears mount"),
+    news("Shares slump as the selloff deepens"),
+    news("Equities fall on a downbeat outlook"),
+    news("Indexes drop as growth weakens"),
+    news("Wall Street lower as worries weigh"),
+  ];
   const bull = computeRadar({ prices, news: bullFeed, calendar: [] }, FIXED_TS);
   const bear = computeRadar({ prices, news: bearFeed, calendar: [] }, FIXED_TS);
   const xauBull = bull.commodities.find((c) => c.ticker === "XAU")!;
