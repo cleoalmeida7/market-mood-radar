@@ -109,7 +109,10 @@ _(Tip: re-run `git log --oneline` for the live list; this is a snapshot.)_
 
 ▶ **PHASE 3 COMPLETE** (Step 5 Yahoo price cache ✅). Next: **Phase 4, Step 6**
 (backtesting + /backtest page) — **awaiting user go-ahead.**
-⚠️ Phases 2 & 3 NOT yet deployed — run `vercel --prod` to push live.
+✅ **Phases 2 & 3 DEPLOYED to production** (2026-06-17, manual `vercel --prod`).
+Verified live: `/api/radar` returns the `sentiment` signal (Phase 2 Step 3) and
+50-day MA / MACD / RSI driven by the Supabase cache (Phase 3). Production = current
+`master` HEAD; nothing pending to deploy.
 Note: `price_history` now holds 12 months (2,524 rows) for all 10 tickers.
 Rule: commit after each step, update this file, then WAIT for user confirmation
 before the next phase.
@@ -187,8 +190,7 @@ domain is verified.)_
   news dominates. Added `sentiment.test.ts` + hormuz decay/saturation tests + an
   engine sentiment-nudge test; updated engine.test scenarios (sentiment neutralised
   in the shared mock; damped case given its own sparse-news scenario). `npm test` =
-  **5 suites / 68 passing**; clean build OK. NOTE: not yet deployed — needs
-  `vercel --prod` to go live.
+  **5 suites / 68 passing**; clean build OK. ✅ Deployed to production 2026-06-17.
   → **Next: Phase 2 Step 4** (topic de-duplication for news + Hormuz).
 - **Phase 2 Step 4 — DONE** (`8b08bad` feat(radar): topic de-duplication). New
   `dedup.ts` — clusters near-identical headlines (Jaccard ≥ 0.6 on significant
@@ -198,7 +200,7 @@ domain is verified.)_
   DISTINCT headlines (identical ones now collapse). `npm test` = **6 suites / 75
   passing**; clean build OK.
   → **PHASE 2 COMPLETE. Next: Phase 3 Step 5** — awaiting user go-ahead.
-  ⚠️ Phase 2 changes NOT yet deployed — run `vercel --prod` to push live.
+  ✅ Phase 2 changes deployed to production 2026-06-17.
 - **Phase 3 Step 5 — DONE** (`d58b62e` feat(db): cache Yahoo price history in
   Supabase). New `price-cache.ts`: `refreshPriceCache(range)` fetches Yahoo +
   upserts `price_history`; `readCachedPrices()` reads back PER-TICKER (most-recent
@@ -208,5 +210,6 @@ domain is verified.)_
   rewritten to seed 12 months. Ran backfill → **2,524 rows**; verified cache reads
   return **253 bars/ticker** so MA-50/MACD/RSI are now meaningful. Added
   `price-cache.test.ts` (pure `rowsToPriceHistory`). `npm test` = **7 suites / 78
-  passing**; clean build OK.
+  passing**; clean build OK. ✅ Deployed to production 2026-06-17 (verified live:
+  50-day MA / MACD driven by the Supabase cache).
   → **PHASE 3 COMPLETE. Next: Phase 4 Step 6** (backtesting) — awaiting user go-ahead.
